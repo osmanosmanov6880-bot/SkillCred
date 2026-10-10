@@ -1,0 +1,9 @@
+check	http_status	elapsed_seconds	result
+health	200	0.468966	PASS
+ready	200	0.444017	PASS
+issuer	200	0.352503	PASS
+issue	200	0.341286	PASS
+verify_active	200	1.378322	PASS valid=true status=active
+revoke	200	0.436245	PASS
+verify_revoked	200	0.455052	PASS valid=false status=revoked
+metrics	200	0.369572	PASS
