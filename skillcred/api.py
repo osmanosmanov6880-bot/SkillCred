@@ -404,6 +404,11 @@ section{margin-top:30px}h2{margin-bottom:8px;font-size:18px}p{line-height:1.65}.
 </div>
 <footer>SkillCred 0.3.0 · Apache-2.0 · <a class="link" href="https://github.com/osmanosmanov6880-bot/SkillCred">Source code and validation notes</a></footer>
 </main></body></html>"""
+        if docs_enabled:
+            page = page.replace(
+                "Interactive API docs are disabled on this deployment.",
+                '<a class="link" href="/docs">Open interactive API documentation</a>.',
+            )
         return HTMLResponse(content=page)
 
     @application.get("/health")
