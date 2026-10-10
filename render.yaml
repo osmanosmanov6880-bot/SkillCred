@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: skillcred-pilot-api
+    runtime: docker
+    plan: starter
+    region: frankfurt
+    autoDeploy: false
+    healthCheckPath: /ready
+    envVars:
+      - key: PORT
+        value: "8000"
+      - key: SKILLCRED_DATA_DIR
+        value: /var/lib/skillcred
+      - key: SKILLCRED_ISSUER_NAME
+        value: SkillCred Pilot Issuer
+      - key: SKILLCRED_LANG
+        value: en
+      - key: SKILLCRED_RATE_LIMIT
+        value: "60"
+      - key: SKILLCRED_RATE_WINDOW_SECONDS
+        value: "60"
+      - key: SKILLCRED_KEY_PASSPHRASE
+        sync: false
+      - key: SKILLCRED_CLIENT_STORE_PASSPHRASE
+        sync: false
+      - key: SKILLCRED_API_TOKENS
+        sync: false
+      - key: SKILLCRED_STATUS_LIST_URL
+        sync: false
+    disk:
+      name: skillcred-pilot-data
+      mountPath: /var/lib/skillcred
+      sizeGB: 1

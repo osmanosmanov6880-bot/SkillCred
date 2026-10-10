@@ -1,0 +1,35 @@
+{$SKILLCRED_DOMAIN} {
+    encode zstd gzip
+    request_body {
+        max_size 1MB
+    }
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "no-referrer"
+        X-Frame-Options "DENY"
+        -Server
+    }
+    @privateDocs path /docs* /redoc* /openapi.json
+    handle @privateDocs {
+        @docsAllowed remote_ip private_ranges
+        handle @docsAllowed {
+            reverse_proxy skillcred:8000
+        }
+        respond "Not Found" 404
+    }
+    @privateMetrics path /metrics /metrics/impact*
+    handle @privateMetrics {
+        @allowed remote_ip private_ranges
+        handle @allowed {
+            reverse_proxy skillcred:8000
+        }
+        respond "Not Found" 404
+    }
+    reverse_proxy skillcred:8000 {
+        header_up -Authorization
+        header_up Authorization {http.request.header.Authorization}
+        header_up X-Forwarded-Proto {scheme}
+        header_up X-Forwarded-For {remote_host}
+    }
+}

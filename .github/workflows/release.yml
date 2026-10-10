@@ -1,0 +1,65 @@
+name: Release artifacts
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  verify-build-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install package and development dependencies
+        run: python -m pip install -e '.[dev]' build
+      - name: Environment diagnostics
+        run: python scripts/check_env.py
+      - name: Lint
+        run: ruff check .
+      - name: Test with coverage
+        run: pytest --cov=skillcred --cov-report=term-missing --cov-report=xml
+      - name: Check release version matches tag
+        run: python -c 'import os,tomllib; p=tomllib.load(open("pyproject.toml","rb"))["project"]["version"]; assert os.environ["GITHUB_REF_NAME"] == "v"+p, (p, os.environ["GITHUB_REF_NAME"])'
+      - name: Build Python distributions
+        run: python -m build --outdir dist
+      - name: Create complete source bundle and Markdown dump
+        run: python scripts/create_release_bundle.py --root . --output-dir dist
+      - name: Validate source and distribution artifacts
+        run: python scripts/validate_release.py --root . --artifact-dir dist --source-zip "dist/SkillCred-${GITHUB_REF_NAME#v}.zip" --source-dump "dist/SkillCred-${GITHUB_REF_NAME#v}-source.md" > dist/skillcred-release-validation.json
+      - name: Require publisher signing key
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          if [ -z "$GPG_PRIVATE_KEY" ] || [ -z "$GPG_PASSPHRASE" ]; then
+            echo "Release blocked: configure GPG_PRIVATE_KEY and GPG_PASSPHRASE as repository secrets." >&2
+            exit 2
+          fi
+      - name: Sign checksums with publisher key
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          printf '%s' "$GPG_PRIVATE_KEY" | gpg --batch --import
+          fpr="$(gpg --batch --with-colons --list-secret-keys | awk -F: '$1=="fpr" {print $10; exit}')"
+          test -n "$fpr"
+          gpg --armor --export "$fpr" > dist/skillcred-release-public-key.asc
+          (cd dist && sha256sum \
+            skillcred-*.whl skillcred-*.tar.gz \
+            SkillCred-*-source.md SkillCred-*.zip \
+            skillcred-release-validation.json skillcred-release-public-key.asc \
+            > SHA256SUMS)
+          gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" \
+            --local-user "$fpr" --armor --detach-sign --output dist/SHA256SUMS.asc dist/SHA256SUMS
+          gpg --verify dist/SHA256SUMS.asc dist/SHA256SUMS
+      - name: Publish GitHub release and attach artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* --generate-notes

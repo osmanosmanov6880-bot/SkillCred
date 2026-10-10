@@ -1,0 +1,38 @@
+name: Bug report
+description: Report a reproducible defect without exposing sensitive data.
+title: "bug: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: "Never include private keys, bearer tokens, real learner data or unredacted credentials."
+  - type: input
+    id: version
+    attributes:
+      label: SkillCred version and commit
+      placeholder: "0.3.0 / commit SHA"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected versus actual result
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment and dependency versions
+    validations:
+      required: true
+  - type: textarea
+    id: sanitized
+    attributes:
+      label: Sanitized logs or artifact
+      description: Remove IDs, signatures/claims you do not wish to disclose, IPs, tokens and personal data.

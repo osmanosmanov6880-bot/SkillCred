@@ -1,0 +1,32 @@
+[Unit]
+Description=SkillCred issuer API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=skillcred
+Group=skillcred
+WorkingDirectory=/opt/skillcred
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=PYTHONUNBUFFERED=1
+Environment=SKILLCRED_DATA_DIR=/var/lib/skillcred
+EnvironmentFile=-/etc/skillcred/skillcred.env
+ExecStart=/opt/skillcred/.venv/bin/uvicorn skillcred.api:app --host 127.0.0.1 --port 8000
+Restart=on-failure
+RestartSec=3
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/skillcred
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+LockPersonality=true
+RestrictSUIDSGID=true
+CapabilityBoundingSet=
+
+[Install]
+WantedBy=multi-user.target

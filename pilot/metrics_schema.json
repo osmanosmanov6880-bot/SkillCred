@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://skillcred.example/pilot/metrics-schema.json",
+  "title": "SkillCred pilot run metrics",
+  "type": "object",
+  "required": ["run_id", "credential_validation", "signature_verification", "transfer_independent_install", "independent_recovery"],
+  "properties": {
+    "run_id": {"type": "string", "minLength": 8, "maxLength": 100, "pattern": "^[A-Za-z0-9_-]+$"},
+    "organization_pseudonym": {"type": "string", "maxLength": 100},
+    "date_utc": {"type": "string", "format": "date"},
+    "credential_validation": {"enum": ["pass", "fail", "blocked"]},
+    "signature_verification": {"enum": ["pass", "fail", "blocked"]},
+    "status_before_revoke": {"enum": ["active", "unexpected", "not-tested"]},
+    "status_after_revoke": {"enum": ["revoked", "unexpected", "not-tested"]},
+    "issuance_duration_ms": {"type": "number", "minimum": 0},
+    "verification_duration_ms": {"type": "number", "minimum": 0},
+    "prior_process_seconds": {"type": "number", "minimum": 0},
+    "skillcred_process_seconds": {"type": "number", "minimum": 0},
+    "transfer_independent_install": {"type": "boolean"},
+    "independent_recovery": {"type": "boolean"},
+    "defect_id": {"type": "string", "maxLength": 100},
+    "feedback_summary": {"type": "string", "maxLength": 2000}
+  },
+  "additionalProperties": false
+}

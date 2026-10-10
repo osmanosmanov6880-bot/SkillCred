@@ -1,0 +1,45 @@
+services:
+  skillcred:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      SKILLCRED_DATA_DIR: /var/lib/skillcred
+      SKILLCRED_ISSUER_NAME: ${SKILLCRED_ISSUER_NAME:-SkillCred Pilot Issuer}
+      SKILLCRED_STATUS_LIST_URL: ${SKILLCRED_STATUS_LIST_URL:?Set the publicly reachable HTTPS status-list URL}
+      SKILLCRED_KEY_PASSPHRASE: ${SKILLCRED_KEY_PASSPHRASE:?Inject from an untracked environment/secret manager}
+      SKILLCRED_CLIENT_STORE_PASSPHRASE: ${SKILLCRED_CLIENT_STORE_PASSPHRASE:-${SKILLCRED_KEY_PASSPHRASE:?required}}
+      SKILLCRED_API_TOKENS: ${SKILLCRED_API_TOKENS:?Inject JSON role-token map from a secret manager}
+      SKILLCRED_REDIS_URL: ${SKILLCRED_REDIS_URL:-}
+      SKILLCRED_RATE_LIMITS_JSON: ${SKILLCRED_RATE_LIMITS_JSON:-}
+      SKILLCRED_ROLE_RATE_LIMITS_JSON: ${SKILLCRED_ROLE_RATE_LIMITS_JSON:-}
+      SKILLCRED_RATE_LIMIT: ${SKILLCRED_RATE_LIMIT:-60}
+      SKILLCRED_RATE_WINDOW_SECONDS: ${SKILLCRED_RATE_WINDOW_SECONDS:-60}
+      SKILLCRED_LANG: ${SKILLCRED_LANG:-en}
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - skillcred_data:/var/lib/skillcred
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,noexec,nosuid
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+volumes:
+  skillcred_data:
+
+  redis:
+    image: redis:7-alpine
+    profiles: ["distributed-limit"]
+    restart: unless-stopped
+    command: ["redis-server", "--save", "", "--appendonly", "no", "--protected-mode", "yes"]
+    expose: ["6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5

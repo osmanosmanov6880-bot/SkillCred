@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: skillcred-config
+data:
+  # Replace with a real public HTTPS endpoint before issuing credentials.
+  status-list-url: "https://credentials.example.invalid/status-list"

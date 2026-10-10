@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install package and development dependencies
+        run: python -m pip install -e '.[dev]'
+      - name: Environment diagnostics
+        run: python scripts/check_env.py
+      - name: Lint
+        run: ruff check .
+      - name: Test with coverage
+        run: pytest --cov=skillcred --cov-report=term-missing --cov-report=xml
+      - name: Build wheel and source distribution
+        run: |
+          python -m pip install build
+          python -m build
+      - name: Validate release metadata and packaged files
+        run: python scripts/validate_release.py --artifact-dir dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: skillcred-python-${{ matrix.python-version }}
+          path: |
+            dist/*.whl
+            dist/*.tar.gz
+            coverage.xml
+          if-no-files-found: error
+
+  container-build:
+    name: Container build smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: docker build --tag skillcred:ci .

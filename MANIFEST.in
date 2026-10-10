@@ -1,0 +1,15 @@
+include README.md LICENSE pyproject.toml Makefile Dockerfile docker-compose.yml
+include .editorconfig .gitignore .pre-commit-config.yaml .env.example
+include SPEC.md RELEASE_SIGNING.md GOVERNANCE.md CHARTER.md CHARTER_AMENDMENTS.md ROADMAP.md CONTRIBUTING.md CONTRIBUTOR_LADDER.md SECURITY.md METRICS.md RED_FLAGS.md CRITIC_REVIEW.md VALIDATION_REPORT.md THREAT_MODEL.md PENTEST_REPORT.md CHANGELOG.md RELEASE_NOTES.md RELEASE_CHECKLIST.md SUPPORT.md AUTHORS.md CODE_OF_CONDUCT.md ACCESSIBILITY.md compliance_report_template.md
+recursive-include skillcred *.py
+recursive-include tests *.py
+recursive-include examples *.py *.md
+recursive-include .github *.yml
+
+recursive-include scripts *.py *.sh
+recursive-include schemas *.json
+recursive-include pilot *.md *.json
+recursive-include deploy *
+recursive-include 1edtech *
+recursive-include tools *.py
+recursive-include .github *.md *.yml

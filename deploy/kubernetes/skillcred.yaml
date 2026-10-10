@@ -1,0 +1,103 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: skillcred-data
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: skillcred
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: skillcred
+  template:
+    metadata:
+      labels:
+        app: skillcred
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+      containers:
+        - name: skillcred
+          image: skillcred:0.3.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8000
+          env:
+            - name: SKILLCRED_DATA_DIR
+              value: /var/lib/skillcred
+            - name: SKILLCRED_KEY_PASSPHRASE
+              valueFrom:
+                secretKeyRef:
+                  name: skillcred-secrets
+                  key: key-passphrase
+            - name: SKILLCRED_API_TOKENS
+              valueFrom:
+                secretKeyRef:
+                  name: skillcred-secrets
+                  key: api-tokens.json
+            - name: SKILLCRED_STATUS_LIST_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: skillcred-config
+                  key: status-list-url
+            - name: SKILLCRED_RATE_LIMIT
+              value: "60"
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/skillcred
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: skillcred-data
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: skillcred
+spec:
+  type: ClusterIP
+  selector:
+    app: skillcred
+  ports:
+    - port: 8000
+      targetPort: http

@@ -1,0 +1,27 @@
+services:
+  skillcred:
+    build: .
+    restart: unless-stopped
+    environment:
+      SKILLCRED_DATA_DIR: /var/lib/skillcred
+      SKILLCRED_ISSUER_NAME: ${SKILLCRED_ISSUER_NAME:-SkillCred Local Issuer}
+      SKILLCRED_STATUS_LIST_URL: ${SKILLCRED_STATUS_LIST_URL:?Set a real public HTTPS status-list URL}
+      SKILLCRED_KEY_PASSPHRASE: ${SKILLCRED_KEY_PASSPHRASE:?Set through a secret manager or untracked environment}
+      SKILLCRED_API_TOKENS: ${SKILLCRED_API_TOKENS:?Set role-specific JSON tokens through a secret manager}
+      SKILLCRED_RATE_LIMIT: ${SKILLCRED_RATE_LIMIT:-60}
+      SKILLCRED_RATE_WINDOW_SECONDS: ${SKILLCRED_RATE_WINDOW_SECONDS:-60}
+      SKILLCRED_LANG: ${SKILLCRED_LANG:-en}
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - skillcred_data:/var/lib/skillcred
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,noexec,nosuid
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+volumes:
+  skillcred_data:
