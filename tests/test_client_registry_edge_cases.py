@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-import json
 import time
 
 import pytest
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
-
 from skillcred.client_registry import ClientRegistry, ClientRegistryError, TokenRejected
 
 
@@ -25,7 +23,9 @@ def test_registry_rejects_short_passphrase_and_corrupt_state(tmp_path):
     path = tmp_path / "broken.enc"
     path.write_bytes(b"not-a-registry")
     with pytest.raises(ClientRegistryError, match="format is invalid"):
-        ClientRegistry(path, "long-test-passphrase-for-client-registry", Ed25519PrivateKey.generate())
+        ClientRegistry(
+            path, "long-test-passphrase-for-client-registry", Ed25519PrivateKey.generate()
+        )
 
 
 def test_client_validation_rejects_blank_name_unknown_role_and_empty_scopes(tmp_path):
@@ -62,7 +62,10 @@ def test_token_expiry_revocation_and_audience_are_enforced(tmp_path, monkeypatch
     r = registry(tmp_path, key)
     c = r.register_client("verifier", ["verifier"])
     issued = r.issue_token(c["client_id"], ttl_seconds=60)
-    assert r.authenticate(issued["access_token"], "verifier", "credential:verify")["sub"] == c["client_id"]
+    assert (
+        r.authenticate(issued["access_token"], "verifier", "credential:verify")["sub"]
+        == c["client_id"]
+    )
     real_time = time.time
     monkeypatch.setattr("skillcred.client_registry.time.time", lambda: real_time() + 120)
     with pytest.raises(TokenRejected, match="expired"):
@@ -76,8 +79,10 @@ def test_token_rejects_wrong_audience_and_role(tmp_path):
     with pytest.raises(TokenRejected):
         r.authenticate(issued["access_token"], "revoker", "credential:revoke")
     other = ClientRegistry(
-        tmp_path / "other.enc", "long-test-passphrase-for-client-registry",
-        r.signing_key, audience="other-api",
+        tmp_path / "other.enc",
+        "long-test-passphrase-for-client-registry",
+        r.signing_key,
+        audience="other-api",
     )
     with pytest.raises(TokenRejected, match="issuer or audience"):
         other.authenticate(issued["access_token"], "issuer", "credential:issue")

@@ -4,7 +4,6 @@ import json
 from pathlib import Path
 
 import pytest
-
 from skillcred.badge import create_credential
 from skillcred.conformance import validate_vc_dm2_credential
 from skillcred.statuslist import create_status_entry
@@ -31,7 +30,9 @@ def test_openbadge_credential_matches_local_profile_schema(private_key):
 
 def test_official_schema_is_used_when_vendored(private_key):
     if not OFFICIAL_SCHEMA.exists():
-        pytest.skip("Official 1EdTech schema not vendored; network access is unavailable in this environment")
+        pytest.skip(
+            "Official 1EdTech schema not vendored; network access is unavailable in this environment"
+        )
     jsonschema = pytest.importorskip("jsonschema")
     credential = create_credential(
         private_key, issuer_name="Issuer", achievement_name="Skill", achievement_description=""

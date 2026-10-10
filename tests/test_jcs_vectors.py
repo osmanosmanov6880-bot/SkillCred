@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pytest
-
 from skillcred.jcs import CanonicalizationError, canonicalize, rfc8785
 
 
@@ -9,9 +8,15 @@ from skillcred.jcs import CanonicalizationError, canonicalize, rfc8785
     ("value", "expected"),
     [
         ({"b": 2, "a": 1}, b'{"a":1,"b":2}'),
-        ({"z": [True, None, False], "a": "line\nfeed"}, b'{"a":"line\\nfeed","z":[true,null,false]}'),
-        ({"€": "Euro Sign", "\r": "Carriage Return", "😀": "Emoji"}, "{\"\\r\":\"Carriage Return\",\"€\":\"Euro Sign\",\"😀\":\"Emoji\"}".encode("utf-8")),
-        ([0, -1, 9007199254740991], b'[0,-1,9007199254740991]'),
+        (
+            {"z": [True, None, False], "a": "line\nfeed"},
+            b'{"a":"line\\nfeed","z":[true,null,false]}',
+        ),
+        (
+            {"€": "Euro Sign", "\r": "Carriage Return", "😀": "Emoji"},
+            '{"\\r":"Carriage Return","€":"Euro Sign","😀":"Emoji"}'.encode(),
+        ),
+        ([0, -1, 9007199254740991], b"[0,-1,9007199254740991]"),
     ],
 )
 def test_jcs_subset_vectors(value, expected):
@@ -49,9 +54,9 @@ def test_rfc8785_section_3_2_2_official_example():
 
     if rfc8785 is None:
         pytest.skip("full number serialization vector requires the rfc8785 dependency")
-    input_json = r'''{"numbers":[333333333.33333329,1E30,4.50,2e-3,0.000000000000000000000000001],"string":"\u20ac$\u000F\u000aA'\u0042\u0022\u005c\\\"\/","literals":[null,true,false]}'''
+    input_json = r"""{"numbers":[333333333.33333329,1E30,4.50,2e-3,0.000000000000000000000000001],"string":"\u20ac$\u000F\u000aA'\u0042\u0022\u005c\\\"\/","literals":[null,true,false]}"""
     value = json.loads(input_json)
-    expected = r'''{"literals":[null,true,false],"numbers":[333333333.3333333,1e+30,4.5,0.002,1e-27],"string":"€$\u000f\nA'B\"\\\\\"/"}'''.encode("utf-8")
+    expected = r"""{"literals":[null,true,false],"numbers":[333333333.3333333,1e+30,4.5,0.002,1e-27],"string":"€$\u000f\nA'B\"\\\\\"/"}""".encode()
     assert canonicalize(value) == expected
 
 
@@ -66,8 +71,9 @@ def test_rfc8785_section_3_2_3_official_property_sort_vector():
         "ö": "Latin Small Letter O With Diaeresis",
     }
     expected = (
-        r'{"\r":"Carriage Return","1":"One","' + "\u0080" +
-        r'":"Control","ö":"Latin Small Letter O With Diaeresis","€":"Euro Sign",'
+        r'{"\r":"Carriage Return","1":"One","'
+        + "\u0080"
+        + r'":"Control","ö":"Latin Small Letter O With Diaeresis","€":"Euro Sign",'
         r'"😀":"Emoji: Grinning Face","דּ":"Hebrew Letter Dalet With Dagesh"}'
     ).encode("utf-8")
     assert canonicalize(value) == expected

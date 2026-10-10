@@ -49,17 +49,13 @@ def main() -> int:
     active_status = manager.create_credential()
     write_json(status_path, active_status)
     exported_credential = json.loads(exported_path.read_text(encoding="utf-8"))
-    active_result = verify_credential(
-        exported_credential, status_list_credential=active_status
-    )
+    active_result = verify_credential(exported_credential, status_list_credential=active_status)
 
     manager.revoke(int(status_entry["statusListIndex"]))
     revoked_status = manager.create_credential()
     revoked_path = out / "status-list-revoked.json"
     write_json(revoked_path, revoked_status)
-    revoked_result = verify_credential(
-        exported_credential, status_list_credential=revoked_status
-    )
+    revoked_result = verify_credential(exported_credential, status_list_credential=revoked_status)
 
     print(
         json.dumps(

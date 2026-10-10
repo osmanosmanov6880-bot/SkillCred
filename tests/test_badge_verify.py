@@ -48,7 +48,9 @@ def test_no_subject_identifier_is_issued_by_default(private_key) -> None:
     )
     subject_id = credential["credentialSubject"]["id"]
     assert subject_id.startswith("urn:uuid:")
-    assert "No learner ID required." in credential["credentialSubject"]["achievement"]["description"]
+    assert (
+        "No learner ID required." in credential["credentialSubject"]["achievement"]["description"]
+    )
 
     second = create_credential(
         private_key,
@@ -93,7 +95,6 @@ def test_rejects_overlong_text(private_key) -> None:
 
 def test_rejects_wrong_issuer_even_if_signed_by_key(private_key) -> None:
     import pytest
-
     from skillcred.badge import add_proof
     from skillcred.verify import VerificationError
 
@@ -108,7 +109,6 @@ def test_rejects_wrong_issuer_even_if_signed_by_key(private_key) -> None:
 
 def test_malformed_and_unsupported_proofs_are_rejected(private_key) -> None:
     import pytest
-
     from skillcred.verify import VerificationError
 
     credential = make_credential(private_key)
@@ -146,7 +146,6 @@ def test_unsigned_status_cannot_be_reported_valid(private_key) -> None:
 
 def test_non_object_and_wrong_key_method_are_rejected() -> None:
     import pytest
-
     from skillcred.verify import VerificationError, extract_public_key, verify_signature
 
     with pytest.raises(VerificationError, match="JSON object"):

@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 
 from fastapi.testclient import TestClient
-
 from skillcred.api import create_app
 
 
@@ -26,7 +25,11 @@ def test_docs_are_disabled_by_default_and_opt_in(tmp_path, monkeypatch):
 def test_client_admin_routes_require_admin_and_handle_bad_client(tmp_path, monkeypatch):
     monkeypatch.setenv("SKILLCRED_API_TOKENS", json.dumps({"verifier": "v" * 48}))
     client = TestClient(create_app(tmp_path))
-    response = client.post("/admin/clients", headers={"Authorization": f"Bearer {'v' * 48}"}, json={"name": "x", "roles": ["issuer"]})
+    response = client.post(
+        "/admin/clients",
+        headers={"Authorization": f"Bearer {'v' * 48}"},
+        json={"name": "x", "roles": ["issuer"]},
+    )
     assert response.status_code == 403
     headers = admin(monkeypatch)
     client = TestClient(create_app(tmp_path / "admin"))
@@ -38,12 +41,19 @@ def test_client_admin_routes_require_admin_and_handle_bad_client(tmp_path, monke
 
 def test_impact_endpoint_requires_scope_and_admin_export(tmp_path, monkeypatch):
     admin_headers = admin(monkeypatch)
-    monkeypatch.setenv("SKILLCRED_API_TOKENS", json.dumps({"verifier": "v" * 48, "admin": admin_headers["Authorization"].split()[1]}))
+    monkeypatch.setenv(
+        "SKILLCRED_API_TOKENS",
+        json.dumps({"verifier": "v" * 48, "admin": admin_headers["Authorization"].split()[1]}),
+    )
     client = TestClient(create_app(tmp_path))
     record = {
-        "organization_ref": "org-pilot-001", "scenario": "university",
-        "baseline_seconds": 100, "current_seconds": 60, "satisfaction": 4,
-        "portability_passed": True, "consent_confirmed": True,
+        "organization_ref": "org-pilot-001",
+        "scenario": "university",
+        "baseline_seconds": 100,
+        "current_seconds": 60,
+        "satisfaction": 4,
+        "portability_passed": True,
+        "consent_confirmed": True,
     }
     verifier = {"Authorization": f"Bearer {'v' * 48}"}
     assert client.post("/metrics/impact", headers=verifier, json=record).status_code == 201

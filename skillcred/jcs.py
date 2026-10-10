@@ -44,9 +44,7 @@ def _fallback(value: Any) -> str:
         if not all(isinstance(key, str) for key in value):
             raise CanonicalizationError("JSON object keys must be strings")
         keys = sorted(value, key=lambda key: key.encode("utf-16-be"))
-        return "{" + ",".join(
-            _fallback(key) + ":" + _fallback(value[key]) for key in keys
-        ) + "}"
+        return "{" + ",".join(_fallback(key) + ":" + _fallback(value[key]) for key in keys) + "}"
     raise CanonicalizationError(f"Unsupported JSON value: {type(value).__name__}")
 
 

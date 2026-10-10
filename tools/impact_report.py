@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Generate a privacy-aware summary report from SkillCred impact JSON export."""
+
 from __future__ import annotations
 
 import argparse
@@ -32,7 +33,9 @@ def build_report(source: dict[str, Any]) -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", type=Path, help="JSON export from GET /metrics/impact")
-    parser.add_argument("--output", type=Path, help="Write JSON report to this path; defaults to stdout")
+    parser.add_argument(
+        "--output", type=Path, help="Write JSON report to this path; defaults to stdout"
+    )
     args = parser.parse_args()
     try:
         source = json.loads(args.input.read_text(encoding="utf-8"))

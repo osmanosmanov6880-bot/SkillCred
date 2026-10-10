@@ -3,8 +3,6 @@ from __future__ import annotations
 import asyncio
 
 from fastapi import FastAPI
-from fastapi.testclient import TestClient
-
 from skillcred.rate_limit import RateLimitMiddleware
 
 
@@ -39,6 +37,6 @@ def test_endpoint_limit_configuration_is_validated(monkeypatch):
     monkeypatch.setenv("SKILLCRED_RATE_LIMITS_JSON", '{"POST /issue": -1}')
     try:
         RateLimitMiddleware(FastAPI())
-        assert False, "invalid limits must fail startup"
+        raise AssertionError("invalid limits must fail startup")
     except RuntimeError:
         pass

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pytest
-
 import skillcred.jcs as jcs
 from skillcred.jcs import CanonicalizationError, canonicalize
 

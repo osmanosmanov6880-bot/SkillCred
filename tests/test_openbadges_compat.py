@@ -4,9 +4,7 @@ import json
 from pathlib import Path
 
 import pytest
-
-from skillcred.badge import create_credential, OB_CONTEXT, VC_CONTEXT
-
+from skillcred.badge import OB_CONTEXT, VC_CONTEXT, create_credential
 
 SCHEMA_PATH = Path(__file__).parents[1] / "schemas" / "openbadge-pilot.schema.json"
 

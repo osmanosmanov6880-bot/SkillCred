@@ -1,4 +1,5 @@
 """Prometheus-compatible, low-cardinality metrics for one FastAPI app."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -15,7 +16,7 @@ class MetricsBundle:
     errors: Counter
 
     @classmethod
-    def create(cls) -> "MetricsBundle":
+    def create(cls) -> MetricsBundle:
         registry = CollectorRegistry(auto_describe=True)
         return cls(
             registry=registry,

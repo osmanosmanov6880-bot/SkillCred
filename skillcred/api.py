@@ -1,8 +1,9 @@
 """Local-first issuer API with role tokens, rate limiting and encrypted signing keys."""
+
 from __future__ import annotations
 
-import os
 import json
+import os
 import tempfile
 import time
 from pathlib import Path
@@ -16,18 +17,18 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.responses import JSONResponse
 
-from skillcred.auth import TokenConfig, load_token_config, require_role, extract_bearer
-from skillcred.client_registry import ClientRegistry, ClientRegistryError, TokenRejected
+from skillcred.auth import TokenConfig, extract_bearer, load_token_config, require_role
 from skillcred.badge import create_credential
+from skillcred.client_registry import ClientRegistry, ClientRegistryError, TokenRejected
+from skillcred.federation import FederationError, IssuerTrustStore, create_issuer_metadata
 from skillcred.i18n import language_from_accept_header, translate
+from skillcred.impact import ImpactRecordRequest, ImpactStore
 from skillcred.keys import (
     generate_keypair,
     identity_from_private_key,
     private_key_from_base64,
 )
 from skillcred.metrics import MetricsBundle
-from skillcred.impact import ImpactRecordRequest, ImpactStore
-from skillcred.federation import FederationError, IssuerTrustStore, create_issuer_metadata
 from skillcred.rate_limit import RateLimitMiddleware
 from skillcred.request_size import RequestSizeLimitMiddleware
 from skillcred.statuslist import StatusListError, StatusListManager
@@ -173,7 +174,9 @@ def _load_or_create_signing_key(
             encrypted_wallet = load_wallet(wallet_path, passphrase)
             encrypted_key = private_key_from_base64(str(encrypted_wallet["private_key"]))
             if identity_from_private_key(encrypted_key).did != identity_from_private_key(key).did:
-                raise RuntimeError("Legacy key differs from existing encrypted wallet; refusing ambiguous migration")
+                raise RuntimeError(
+                    "Legacy key differs from existing encrypted wallet; refusing ambiguous migration"
+                )
         else:
             save_wallet(
                 wallet_path,
@@ -248,7 +251,9 @@ def _read_client_store_passphrase() -> str | None:
         try:
             stat = path.stat()
             if os.name != "nt" and stat.st_mode & 0o077:
-                raise RuntimeError("Client registry secret file must not be readable by group or others")
+                raise RuntimeError(
+                    "Client registry secret file must not be readable by group or others"
+                )
             value = path.read_text(encoding="utf-8").rstrip("\r\n")
         except OSError as exc:
             raise RuntimeError("Could not read client registry passphrase secret file") from exc
@@ -273,7 +278,9 @@ def create_app(
         # owner-only access rather than inheriting permissive umask/mount modes.
         os.chmod(resolved_dir, 0o700)
     try:
-        key, persistent_key = _load_or_create_signing_key(resolved_dir, allow_ephemeral=allow_ephemeral)
+        key, persistent_key = _load_or_create_signing_key(
+            resolved_dir, allow_ephemeral=allow_ephemeral
+        )
     except (RuntimeError, WalletError, ValueError) as exc:
         raise RuntimeError(f"SkillCred signing key initialization failed: {exc}") from exc
     issuer_name = os.environ.get("SKILLCRED_ISSUER_NAME", "SkillCred Local Issuer")
@@ -287,9 +294,7 @@ def create_app(
     try:
         registry_passphrase = _read_client_store_passphrase() if persistent_key else None
         if registry_passphrase:
-            client_registry = ClientRegistry(
-                resolved_dir / "clients.enc", registry_passphrase, key
-            )
+            client_registry = ClientRegistry(resolved_dir / "clients.enc", registry_passphrase, key)
     except (RuntimeError, ClientRegistryError) as exc:
         raise RuntimeError(f"SkillCred client registry initialization failed: {exc}") from exc
 
@@ -381,7 +386,10 @@ def create_app(
     @application.post("/issue")
     def issue(request: Request, payload: IssueRequest) -> dict[str, Any]:
         if not persistent_key:
-            raise HTTPException(status_code=503, detail="Signing is disabled until an encrypted issuer key is configured")
+            raise HTTPException(
+                status_code=503,
+                detail="Signing is disabled until an encrypted issuer key is configured",
+            )
         _role_for_request(request, "issuer")
         try:
             status_entry = manager.allocate()
@@ -430,7 +438,10 @@ def create_app(
     @application.post("/revoke")
     def revoke(request: Request, payload: RevokeRequest) -> dict[str, Any]:
         if not persistent_key:
-            raise HTTPException(status_code=503, detail="Signing is disabled until an encrypted issuer key is configured")
+            raise HTTPException(
+                status_code=503,
+                detail="Signing is disabled until an encrypted issuer key is configured",
+            )
         _role_for_request(request, "revoker")
         try:
             manager.revoke(payload.status_list_index)
@@ -445,7 +456,9 @@ def create_app(
         _role_for_request(request, "admin")
         registry: ClientRegistry | None = request.app.state.client_registry
         if registry is None:
-            raise HTTPException(status_code=503, detail="Encrypted client registry is not configured")
+            raise HTTPException(
+                status_code=503, detail="Encrypted client registry is not configured"
+            )
         try:
             return registry.register_client(payload.name, payload.roles, payload.scopes)
         except ClientRegistryError as exc:
@@ -456,26 +469,36 @@ def create_app(
         _role_for_request(request, "admin")
         registry: ClientRegistry | None = request.app.state.client_registry
         if registry is None:
-            raise HTTPException(status_code=503, detail="Encrypted client registry is not configured")
+            raise HTTPException(
+                status_code=503, detail="Encrypted client registry is not configured"
+            )
         return {"clients": registry.list_clients()}
 
     @application.post("/admin/clients/{client_id}/tokens")
-    def issue_client_token(request: Request, client_id: str, payload: ClientTokenRequest) -> dict[str, Any]:
+    def issue_client_token(
+        request: Request, client_id: str, payload: ClientTokenRequest
+    ) -> dict[str, Any]:
         _role_for_request(request, "admin")
         registry: ClientRegistry | None = request.app.state.client_registry
         if registry is None:
-            raise HTTPException(status_code=503, detail="Encrypted client registry is not configured")
+            raise HTTPException(
+                status_code=503, detail="Encrypted client registry is not configured"
+            )
         try:
             return registry.issue_token(client_id, payload.expires_in, payload.scopes)
         except ClientRegistryError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     @application.post("/admin/clients/{client_id}/rotate")
-    def rotate_client_token(request: Request, client_id: str, payload: ClientTokenRequest) -> dict[str, Any]:
+    def rotate_client_token(
+        request: Request, client_id: str, payload: ClientTokenRequest
+    ) -> dict[str, Any]:
         _role_for_request(request, "admin")
         registry: ClientRegistry | None = request.app.state.client_registry
         if registry is None:
-            raise HTTPException(status_code=503, detail="Encrypted client registry is not configured")
+            raise HTTPException(
+                status_code=503, detail="Encrypted client registry is not configured"
+            )
         try:
             return registry.rotate_token(client_id, payload.expires_in)
         except ClientRegistryError as exc:
@@ -486,7 +509,9 @@ def create_app(
         _role_for_request(request, "admin")
         registry: ClientRegistry | None = request.app.state.client_registry
         if registry is None:
-            raise HTTPException(status_code=503, detail="Encrypted client registry is not configured")
+            raise HTTPException(
+                status_code=503, detail="Encrypted client registry is not configured"
+            )
         try:
             registry.revoke_client(client_id)
             return {"revoked": True, "client_id": client_id}
@@ -498,7 +523,9 @@ def create_app(
         _role_for_request(request, "admin")
         registry: ClientRegistry | None = request.app.state.client_registry
         if registry is None:
-            raise HTTPException(status_code=503, detail="Encrypted client registry is not configured")
+            raise HTTPException(
+                status_code=503, detail="Encrypted client registry is not configured"
+            )
         try:
             registry.revoke_token(jti)
             return {"revoked": True, "jti": jti}
@@ -520,8 +547,10 @@ def create_app(
         _role_for_request(request, "admin")
         if format == "csv":
             from fastapi.responses import Response as CsvResponse
+
             return CsvResponse(
-                content=impact_store.export_csv(), media_type="text/csv; charset=utf-8",
+                content=impact_store.export_csv(),
+                media_type="text/csv; charset=utf-8",
                 headers={"Content-Disposition": "attachment; filename=skillcred-impact.csv"},
             )
         if format != "json":

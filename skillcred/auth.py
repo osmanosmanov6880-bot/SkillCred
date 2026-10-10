@@ -4,13 +4,14 @@ Preferred routine access uses short-lived, scoped JWTs from the encrypted client
 SKILLCRED_API_TOKENS supports a distinct role-token map for migration/emergency use;
 SKILLCRED_API_TOKEN or protected SKILLCRED_API_TOKEN_FILE is bootstrap admin only.
 """
+
 from __future__ import annotations
 
 import hmac
 import json
 import os
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable
 
 from fastapi import HTTPException
 
@@ -60,7 +61,9 @@ def load_token_config() -> TokenConfig:
             if not os.path.isfile(secret_path):
                 raise RuntimeError("SKILLCRED_API_TOKEN_FILE must point to a regular file")
             if os.name != "nt" and file_stat.st_mode & 0o077:
-                raise RuntimeError("Bootstrap token file must not be readable by group or other users")
+                raise RuntimeError(
+                    "Bootstrap token file must not be readable by group or other users"
+                )
             with open(secret_path, encoding="utf-8") as stream:
                 legacy = stream.read().strip()
         except OSError as exc:
@@ -68,7 +71,13 @@ def load_token_config() -> TokenConfig:
     if legacy:
         if len(legacy) < 32 or not legacy.isascii():
             raise RuntimeError("Bootstrap admin token must be >=32 ASCII characters")
-        return TokenConfig(((legacy, "admin"),), True, "legacy-admin-file" if legacy_file and not os.environ.get("SKILLCRED_API_TOKEN") else "legacy-admin")
+        return TokenConfig(
+            ((legacy, "admin"),),
+            True,
+            "legacy-admin-file"
+            if legacy_file and not os.environ.get("SKILLCRED_API_TOKEN")
+            else "legacy-admin",
+        )
     return TokenConfig((), False, "unconfigured")
 
 
@@ -119,4 +128,3 @@ def require_role(
     if "admin" in roles or roles.intersection(requested):
         return "admin" if "admin" in roles else sorted(roles.intersection(requested))[0]
     raise HTTPException(status_code=403, detail="Insufficient role")
-

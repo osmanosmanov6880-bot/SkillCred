@@ -1,4 +1,5 @@
 """ASGI request-size limit to bound JSON parsing and memory consumption."""
+
 from __future__ import annotations
 
 import json
@@ -6,7 +7,10 @@ import os
 from collections.abc import Awaitable, Callable
 from typing import Any
 
-ASGIApp = Callable[[dict[str, Any], Callable[..., Awaitable[dict[str, Any]]], Callable[..., Awaitable[None]]], Awaitable[None]]
+ASGIApp = Callable[
+    [dict[str, Any], Callable[..., Awaitable[dict[str, Any]]], Callable[..., Awaitable[None]]],
+    Awaitable[None],
+]
 
 
 class RequestSizeLimitMiddleware:
@@ -19,14 +23,21 @@ class RequestSizeLimitMiddleware:
 
     def __init__(self, app: ASGIApp, max_bytes: int | None = None) -> None:
         self.app = app
-        configured = max_bytes if max_bytes is not None else int(
-            os.getenv("SKILLCRED_MAX_REQUEST_BYTES", str(1024 * 1024))
+        configured = (
+            max_bytes
+            if max_bytes is not None
+            else int(os.getenv("SKILLCRED_MAX_REQUEST_BYTES", str(1024 * 1024)))
         )
         if configured < 1:
             raise ValueError("max request size must be positive")
         self.max_bytes = configured
 
-    async def __call__(self, scope: dict[str, Any], receive: Callable[..., Awaitable[dict[str, Any]]], send: Callable[..., Awaitable[None]]) -> None:
+    async def __call__(
+        self,
+        scope: dict[str, Any],
+        receive: Callable[..., Awaitable[dict[str, Any]]],
+        send: Callable[..., Awaitable[None]],
+    ) -> None:
         if scope.get("type") != "http" or scope.get("method") not in {"POST", "PUT", "PATCH"}:
             await self.app(scope, receive, send)
             return

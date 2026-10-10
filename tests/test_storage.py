@@ -3,10 +3,8 @@ from __future__ import annotations
 import os
 
 import pytest
-
 from skillcred.keys import generate_keypair
 from skillcred.storage import WalletError, export_wallet, load_wallet, save_wallet, wallet_from_key
-
 
 PASSPHRASE = "a-correct-horse-battery-42"
 

@@ -5,6 +5,7 @@ filesystem. Use an external transactional store before running multiple replicas
 Access tokens are compact JWS JWTs with alg=EdDSA (RFC 8037); each token is
 checked against encrypted state so per-token and per-client revocation take effect.
 """
+
 from __future__ import annotations
 
 import base64
@@ -19,7 +20,6 @@ from pathlib import Path
 from typing import Any
 
 from cryptography.exceptions import InvalidTag
-from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
@@ -62,7 +62,9 @@ def _b64u(data: bytes) -> str:
 
 
 def _unb64u(value: str) -> bytes:
-    if not value or any(ch not in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_" for ch in value):
+    if not value or any(
+        ch not in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_" for ch in value
+    ):
         raise TokenRejected("Malformed JWT base64url segment")
     return base64.urlsafe_b64decode(value + "=" * (-len(value) % 4))
 
@@ -151,7 +153,9 @@ class ClientRegistry:
         ciphertext = AESGCM(_derive(self.passphrase, salt)).encrypt(nonce, plain, _MAGIC)
         _atomic_write(self.path, _MAGIC + salt + nonce + ciphertext)
 
-    def register_client(self, name: str, roles: list[str], scopes: list[str] | None = None) -> dict[str, Any]:
+    def register_client(
+        self, name: str, roles: list[str], scopes: list[str] | None = None
+    ) -> dict[str, Any]:
         clean_name = name.strip()
         if not clean_name or len(clean_name) > 120:
             raise ClientRegistryError("Client name must contain 1..120 characters")
@@ -159,7 +163,9 @@ class ClientRegistry:
         if not role_set or not role_set <= ROLES:
             raise ClientRegistryError("At least one valid role is required")
         if "admin" in role_set and os.environ.get("SKILLCRED_ALLOW_CLIENT_ADMIN") != "true":
-            raise ClientRegistryError("Creating admin clients requires SKILLCRED_ALLOW_CLIENT_ADMIN=true")
+            raise ClientRegistryError(
+                "Creating admin clients requires SKILLCRED_ALLOW_CLIENT_ADMIN=true"
+            )
         allowed = set().union(*(ROLE_SCOPES[role] for role in role_set))
         default_scopes = set().union(*(ROLE_DEFAULT_SCOPES[role] for role in role_set))
         scope_set = set(scopes) if scopes is not None else default_scopes
@@ -179,17 +185,25 @@ class ClientRegistry:
             data = self._read()
             data["clients"][client_id] = record
             self._write(data)
-        return {key: record[key] for key in ("client_id", "name", "roles", "scopes", "status", "created_at")}
+        return {
+            key: record[key]
+            for key in ("client_id", "name", "roles", "scopes", "status", "created_at")
+        }
 
     def list_clients(self) -> list[dict[str, Any]]:
         with self._lock:
             data = self._read()
             return [
-                {k: client[k] for k in ("client_id", "name", "roles", "scopes", "status", "created_at")}
+                {
+                    k: client[k]
+                    for k in ("client_id", "name", "roles", "scopes", "status", "created_at")
+                }
                 for client in sorted(data["clients"].values(), key=lambda item: item["created_at"])
             ]
 
-    def _sign_token(self, client: dict[str, Any], ttl_seconds: int, scopes: list[str] | None = None) -> dict[str, Any]:
+    def _sign_token(
+        self, client: dict[str, Any], ttl_seconds: int, scopes: list[str] | None = None
+    ) -> dict[str, Any]:
         if not 60 <= ttl_seconds <= 30 * 24 * 60 * 60:
             raise ClientRegistryError("expires_in must be between 60 seconds and 30 days")
         scope_set = set(client["scopes"]) if scopes is None else set(scopes)
@@ -197,7 +211,11 @@ class ClientRegistry:
             raise ClientRegistryError("Requested token scopes exceed the client's grants")
         now = int(time.time())
         jti = uuid.uuid4().hex
-        header = {"alg": "EdDSA", "typ": "JWT", "kid": identity_from_private_key(self.signing_key).verification_method}
+        header = {
+            "alg": "EdDSA",
+            "typ": "JWT",
+            "kid": identity_from_private_key(self.signing_key).verification_method,
+        }
         payload = {
             "iss": self.issuer_id,
             "sub": client["client_id"],
@@ -215,9 +233,17 @@ class ClientRegistry:
         signing_input = f"{header_part}.{payload_part}".encode("ascii")
         signature = self.signing_key.sign(signing_input)
         compact = f"{header_part}.{payload_part}.{_b64u(signature)}"
-        return {"access_token": compact, "token_type": "Bearer", "expires_in": ttl_seconds, "jti": jti, "scopes": sorted(scope_set)}
+        return {
+            "access_token": compact,
+            "token_type": "Bearer",
+            "expires_in": ttl_seconds,
+            "jti": jti,
+            "scopes": sorted(scope_set),
+        }
 
-    def issue_token(self, client_id: str, ttl_seconds: int = 3600, scopes: list[str] | None = None) -> dict[str, Any]:
+    def issue_token(
+        self, client_id: str, ttl_seconds: int = 3600, scopes: list[str] | None = None
+    ) -> dict[str, Any]:
         with self._lock:
             data = self._read()
             client = data["clients"].get(client_id)
@@ -309,7 +335,11 @@ class ClientRegistry:
         client_id = claims.get("sub")
         roles = claims.get("roles")
         scope_set = set(str(claims.get("scope", "")).split())
-        if not isinstance(jti, str) or not isinstance(client_id, str) or not isinstance(roles, list):
+        if (
+            not isinstance(jti, str)
+            or not isinstance(client_id, str)
+            or not isinstance(roles, list)
+        ):
             raise TokenRejected("JWT is missing required claims")
         with self._lock:
             data = self._read()
@@ -319,7 +349,9 @@ class ClientRegistry:
                 raise TokenRejected("Client or token has been revoked")
             if token_record.get("revoked") or token_record.get("expires_at", 0) <= now:
                 raise TokenRejected("Token has been revoked or expired")
-            if claims.get("ver") != client.get("token_version") or token_record.get("token_version") != client.get("token_version"):
+            if claims.get("ver") != client.get("token_version") or token_record.get(
+                "token_version"
+            ) != client.get("token_version"):
                 raise TokenRejected("Token has been superseded by rotation")
             if "admin" not in roles and required_role not in roles:
                 raise TokenRejected("Token does not grant the required role")
@@ -339,11 +371,19 @@ class ClientRegistry:
                 return set()
             untrusted = json.loads(_unb64u(parts[1]))
             candidate_roles = untrusted.get("roles", []) if isinstance(untrusted, dict) else []
-            scopes = set(str(untrusted.get("scope", "")).split()) if isinstance(untrusted, dict) else set()
+            scopes = (
+                set(str(untrusted.get("scope", "")).split())
+                if isinstance(untrusted, dict)
+                else set()
+            )
             result: set[str] = set()
             for role in candidate_roles:
                 permitted = ROLE_SCOPES.get(role, frozenset())
-                matched = "*" if role == "admin" and "*" in scopes else next(iter(permitted.intersection(scopes)), None)
+                matched = (
+                    "*"
+                    if role == "admin" and "*" in scopes
+                    else next(iter(permitted.intersection(scopes)), None)
+                )
                 if matched:
                     self.authenticate(compact, role, matched)
                     result.add(role)

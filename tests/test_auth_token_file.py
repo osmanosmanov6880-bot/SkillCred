@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 import json
+import os
 
+import pytest
 from skillcred.auth import load_token_config, require_role
 
 
 def test_loads_role_tokens_from_protected_file(tmp_path, monkeypatch):
-    tokens = {role: f"{role}-" + role[0] * 48 for role in ("issuer", "revoker", "verifier", "admin")}
+    tokens = {
+        role: f"{role}-" + role[0] * 48 for role in ("issuer", "revoker", "verifier", "admin")
+    }
     secret = tmp_path / "tokens.json"
     secret.write_text(json.dumps(tokens), encoding="utf-8")
     secret.chmod(0o600)
@@ -17,7 +21,6 @@ def test_loads_role_tokens_from_protected_file(tmp_path, monkeypatch):
     assert config.configured is True
     assert config.source == "role-map"
     assert require_role(f"Bearer {tokens['issuer']}", "issuer", config=config) == "issuer"
-
 
 
 def test_loads_bootstrap_admin_token_from_protected_file(tmp_path, monkeypatch):
@@ -34,6 +37,10 @@ def test_loads_bootstrap_admin_token_from_protected_file(tmp_path, monkeypatch):
     assert require_role("Bearer bootstrap-admin-" + "z" * 48, "admin", config=config) == "admin"
 
 
+@pytest.mark.skipif(
+    os.name == "nt",
+    reason="POSIX file permission bits are not available on Windows",
+)
 def test_bootstrap_token_file_rejects_permissive_permissions(tmp_path, monkeypatch):
     secret = tmp_path / "permissive"
     secret.write_text("bootstrap-admin-" + "z" * 48, encoding="utf-8")

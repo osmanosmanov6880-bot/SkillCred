@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import json
 
-from typer.testing import CliRunner
-
 from skillcred.cli import app
+from typer.testing import CliRunner
 
 
 def test_cli_init_issue_verify_export_info(tmp_path, monkeypatch) -> None:
@@ -17,8 +16,15 @@ def test_cli_init_issue_verify_export_info(tmp_path, monkeypatch) -> None:
     result = runner.invoke(
         app,
         [
-            "issue", "--wallet", str(wallet), "--achievement", "CLI skill",
-            "--description", "Passed", "--out", str(credential_path),
+            "issue",
+            "--wallet",
+            str(wallet),
+            "--achievement",
+            "CLI skill",
+            "--description",
+            "Passed",
+            "--out",
+            str(credential_path),
         ],
     )
     assert result.exit_code == 0, result.output
@@ -46,9 +52,20 @@ def test_cli_status_list_revoke_and_verify_status(tmp_path, monkeypatch) -> None
     issue = runner.invoke(
         app,
         [
-            "issue", "--wallet", str(wallet), "--achievement", "Secure issue",
-            "--description", "Tested", "--with-status", "--data-dir", str(state_dir),
-            "--status-list-url", list_url, "--out", str(credential_path),
+            "issue",
+            "--wallet",
+            str(wallet),
+            "--achievement",
+            "Secure issue",
+            "--description",
+            "Tested",
+            "--with-status",
+            "--data-dir",
+            str(state_dir),
+            "--status-list-url",
+            list_url,
+            "--out",
+            str(credential_path),
         ],
     )
     assert issue.exit_code == 0, issue.output
@@ -56,8 +73,15 @@ def test_cli_status_list_revoke_and_verify_status(tmp_path, monkeypatch) -> None
     status_cmd = runner.invoke(
         app,
         [
-            "status-list", "--wallet", str(wallet), "--data-dir", str(state_dir),
-            "--url", list_url, "--out", str(status_path),
+            "status-list",
+            "--wallet",
+            str(wallet),
+            "--data-dir",
+            str(state_dir),
+            "--url",
+            list_url,
+            "--out",
+            str(status_path),
         ],
     )
     assert status_cmd.exit_code == 0, status_cmd.output
@@ -74,8 +98,15 @@ def test_cli_status_list_revoke_and_verify_status(tmp_path, monkeypatch) -> None
     runner.invoke(
         app,
         [
-            "status-list", "--wallet", str(wallet), "--data-dir", str(state_dir),
-            "--url", list_url, "--out", str(status_path),
+            "status-list",
+            "--wallet",
+            str(wallet),
+            "--data-dir",
+            str(state_dir),
+            "--url",
+            list_url,
+            "--out",
+            str(status_path),
         ],
     )
     revoked = runner.invoke(
@@ -109,6 +140,7 @@ def test_cli_info_rejects_wrong_passphrase(tmp_path, monkeypatch) -> None:
 
 def test_cli_credential_file_is_owner_only(tmp_path, monkeypatch) -> None:
     import os
+
     import pytest
 
     if os.name == "nt":
@@ -121,8 +153,15 @@ def test_cli_credential_file_is_owner_only(tmp_path, monkeypatch) -> None:
     issued = runner.invoke(
         app,
         [
-            "issue", "--wallet", str(wallet), "--achievement", "Private skill",
-            "--description", "Sensitive details", "--out", str(credential),
+            "issue",
+            "--wallet",
+            str(wallet),
+            "--achievement",
+            "Private skill",
+            "--description",
+            "Sensitive details",
+            "--out",
+            str(credential),
         ],
     )
     assert issued.exit_code == 0, issued.output

@@ -5,6 +5,7 @@ or fails, the middleware falls back to bounded process-local counters. That
 fallback preserves service availability but is not a distributed security
 boundary; production ingress should also enforce limits at the reverse proxy.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -46,7 +47,13 @@ def _json_limit_map(env_name: str, defaults: dict[str, int]) -> dict[str, int]:
             raise ValueError
         result: dict[str, int] = {}
         for key, value in parsed.items():
-            if not isinstance(key, str) or not key or isinstance(value, bool) or not isinstance(value, int) or not 1 <= value <= 100_000:
+            if (
+                not isinstance(key, str)
+                or not key
+                or isinstance(value, bool)
+                or not isinstance(value, int)
+                or not 1 <= value <= 100_000
+            ):
                 raise ValueError
             result[key] = value
         return result
@@ -64,10 +71,14 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         redis_client: Any | None = None,
     ):
         super().__init__(app)
-        self.limit = max(1, limit if limit is not None else int(os.getenv("SKILLCRED_RATE_LIMIT", "120")))
+        self.limit = max(
+            1, limit if limit is not None else int(os.getenv("SKILLCRED_RATE_LIMIT", "120"))
+        )
         self.window_seconds = max(
             1,
-            window_seconds if window_seconds is not None else int(os.getenv("SKILLCRED_RATE_WINDOW_SECONDS", "60")),
+            window_seconds
+            if window_seconds is not None
+            else int(os.getenv("SKILLCRED_RATE_WINDOW_SECONDS", "60")),
         )
         self.path_limits = _json_limit_map("SKILLCRED_RATE_LIMITS_JSON", _DEFAULT_PATH_LIMITS)
         self.role_limits = _json_limit_map("SKILLCRED_ROLE_RATE_LIMITS_JSON", _DEFAULT_ROLE_LIMITS)
@@ -80,7 +91,10 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         if self.redis is None and os.getenv("SKILLCRED_REDIS_URL"):
             try:
                 from redis.asyncio import Redis
-                self.redis = Redis.from_url(os.environ["SKILLCRED_REDIS_URL"], decode_responses=True, socket_timeout=0.5)
+
+                self.redis = Redis.from_url(
+                    os.environ["SKILLCRED_REDIS_URL"], decode_responses=True, socket_timeout=0.5
+                )
                 self.redis_available = True
             except ImportError:
                 self.redis_available = False
@@ -102,8 +116,10 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             actual_parts = path.strip("/").split("/")
             if len(expected_parts) != len(actual_parts):
                 continue
-            if all(expected.startswith("{") and expected.endswith("}") or expected == actual
-                   for expected, actual in zip(expected_parts, actual_parts, strict=True)):
+            if all(
+                expected.startswith("{") and expected.endswith("}") or expected == actual
+                for expected, actual in zip(expected_parts, actual_parts, strict=True)
+            ):
                 selected = min(selected, ceiling)
         return selected
 
@@ -111,7 +127,11 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         client_host = request.client.host if request.client else "unknown"
         authorization = request.headers.get("authorization", "")
         # Never persist bearer secrets in keys or logs. Hash only for a stable bucket.
-        subject_hash = hashlib.sha256(authorization.encode("utf-8")).hexdigest()[:20] if authorization else "anonymous"
+        subject_hash = (
+            hashlib.sha256(authorization.encode("utf-8")).hexdigest()[:20]
+            if authorization
+            else "anonymous"
+        )
         return client_host, subject_hash
 
     async def _redis_increment(self, key: str) -> int:
@@ -175,14 +195,19 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             except Exception as exc:
                 self.redis_available = False
                 if not self._fallback_reported:
-                    logger.warning("Redis rate limiter unavailable; switching to process-local fallback (%s)", type(exc).__name__)
+                    logger.warning(
+                        "Redis rate limiter unavailable; switching to process-local fallback (%s)",
+                        type(exc).__name__,
+                    )
                     self._fallback_reported = True
                     metrics = getattr(request.app.state, "metrics", None)
                     if metrics is not None:
                         metrics.errors.labels("rate_limit_redis_fallback").inc()
                 count = 0
         elif self.redis_configured and not self._fallback_reported:
-            logger.warning("Redis rate limiter is configured but the optional redis package/client is unavailable; using process-local fallback")
+            logger.warning(
+                "Redis rate limiter is configured but the optional redis package/client is unavailable; using process-local fallback"
+            )
             self._fallback_reported = True
             metrics = getattr(request.app.state, "metrics", None)
             if metrics is not None:
@@ -193,7 +218,12 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             reset = self.window_seconds - (now % self.window_seconds)
             return JSONResponse(
                 status_code=429,
-                content={"detail": translate("rate_limit", language_from_accept_header(request.headers.get("accept-language")))},
+                content={
+                    "detail": translate(
+                        "rate_limit",
+                        language_from_accept_header(request.headers.get("accept-language")),
+                    )
+                },
                 headers={
                     "Retry-After": str(max(1, reset)),
                     "X-RateLimit-Limit": str(selected_limit),

@@ -1,17 +1,16 @@
 from __future__ import annotations
 
 import pytest
-
 from skillcred.keys import (
     KeyFormatError,
     b58decode,
     b58encode,
     decode_multibase_ed25519,
     did_key,
+    generate_keypair,
     identity_from_private_key,
     private_key_from_base64,
     private_key_to_base64,
-    generate_keypair,
 )
 
 
@@ -40,7 +39,6 @@ def test_rejects_bad_multibase() -> None:
 
 def test_rejects_bad_private_key_encodings() -> None:
     import pytest
-
     from skillcred.keys import private_key_from_base64
 
     with pytest.raises(KeyFormatError):

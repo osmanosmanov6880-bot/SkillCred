@@ -84,7 +84,11 @@ def init(
     identity = identity_from_private_key(private_key)
     typer.echo(
         json.dumps(
-            {"message": translate("wallet_created"), "wallet": str(wallet.resolve()), "issuer_id": identity.did},
+            {
+                "message": translate("wallet_created"),
+                "wallet": str(wallet.resolve()),
+                "issuer_id": identity.did,
+            },
             indent=2,
             ensure_ascii=False,
         )
@@ -170,7 +174,7 @@ def export(
 
 @app.command()
 def info(
-    wallet: Path = typer.Option(Path("skillcred.wallet"), "--wallet", help="Encrypted wallet")
+    wallet: Path = typer.Option(Path("skillcred.wallet"), "--wallet", help="Encrypted wallet"),
 ) -> None:
     """Display public issuer metadata only; never display private-key bytes."""
     try:

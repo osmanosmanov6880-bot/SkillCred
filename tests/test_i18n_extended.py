@@ -1,8 +1,14 @@
 from __future__ import annotations
 
 import pytest
-
-from skillcred.i18n import MESSAGES, SUPPORTED_LANGUAGES, is_rtl, language_from_accept_header, normalize_language, translate
+from skillcred.i18n import (
+    MESSAGES,
+    SUPPORTED_LANGUAGES,
+    is_rtl,
+    language_from_accept_header,
+    normalize_language,
+    translate,
+)
 
 
 @pytest.mark.parametrize("language", ["ru", "en", "de", "fr", "es", "zh", "ar"])

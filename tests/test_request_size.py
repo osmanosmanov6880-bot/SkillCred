@@ -3,7 +3,6 @@ from __future__ import annotations
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-
 from skillcred.request_size import RequestSizeLimitMiddleware
 
 
@@ -15,9 +14,7 @@ def test_rejects_declared_oversized_body_without_reading_it() -> None:
     def echo(payload: dict[str, object]) -> dict[str, object]:
         return payload
 
-    response = TestClient(app).post(
-        "/echo", content=b"{}", headers={"content-length": "999"}
-    )
+    response = TestClient(app).post("/echo", content=b"{}", headers={"content-length": "999"})
     assert response.status_code == 413
     assert response.json()["detail"] == "Request body too large"
 
@@ -30,7 +27,7 @@ def test_accepts_body_at_limit() -> None:
     def echo(payload: dict[str, object]) -> dict[str, object]:
         return payload
 
-    response = TestClient(app).post("/echo", content=b"{}")
+    response = TestClient(app).post("/echo", json={})
     assert response.status_code == 200
     assert response.json() == {}
 

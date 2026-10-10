@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from fastapi.testclient import TestClient
-
 from skillcred.api import create_app
 
 
@@ -34,7 +33,10 @@ def test_api_issue_verify_and_revoke(tmp_path, monkeypatch) -> None:
     verified = verified_response.json()
     assert verified["valid"] is True
     index = int(credential["credentialStatus"]["statusListIndex"])
-    assert client.post("/revoke", json={"status_list_index": index}, headers=headers).status_code == 200
+    assert (
+        client.post("/revoke", json={"status_list_index": index}, headers=headers).status_code
+        == 200
+    )
     revoked_list = client.get("/status-list").json()
     result_response = client.post(
         "/verify",
@@ -96,12 +98,16 @@ def test_mutating_api_requires_a_valid_bearer_token(tmp_path, monkeypatch) -> No
     client = TestClient(create_app(tmp_path))
     payload = {"achievement_name": "Skill", "achievement_description": "Assessment"}
     assert client.post("/issue", json=payload).status_code == 401
-    assert client.post(
-        "/issue", json=payload, headers={"Authorization": "Bearer wrong"}
-    ).status_code == 403
-    assert client.post(
-        "/issue", json=payload, headers={"Authorization": f"Bearer {token}"}
-    ).status_code == 200
+    assert (
+        client.post("/issue", json=payload, headers={"Authorization": "Bearer wrong"}).status_code
+        == 403
+    )
+    assert (
+        client.post(
+            "/issue", json=payload, headers={"Authorization": f"Bearer {token}"}
+        ).status_code
+        == 200
+    )
 
 
 def test_ephemeral_import_style_app_does_not_publish_a_status_list(tmp_path, monkeypatch):

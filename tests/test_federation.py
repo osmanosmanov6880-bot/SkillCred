@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 from fastapi.testclient import TestClient
-
 from skillcred.api import create_app
-from skillcred.federation import FederationError, IssuerTrustStore, create_issuer_metadata, validate_issuer_metadata
+from skillcred.federation import (
+    FederationError,
+    IssuerTrustStore,
+    create_issuer_metadata,
+    validate_issuer_metadata,
+)
 from skillcred.keys import generate_keypair, identity_from_private_key
 
 
@@ -47,7 +51,10 @@ def test_pin_rejects_did_mismatch_invalid_status_url_and_invalid_metadata(tmp_pa
         assert "does not match" in str(exc)
     else:
         raise AssertionError("DID mismatch must not be trusted")
-    malformed = {**document, "statusList": {"type": "BitstringStatusList", "url": "http://127.0.0.1.evil/status"}}
+    malformed = {
+        **document,
+        "statusList": {"type": "BitstringStatusList", "url": "http://127.0.0.1.evil/status"},
+    }
     assert any("HTTPS" in error for error in validate_issuer_metadata(malformed))
     assert validate_issuer_metadata({"id": "other"})
 
@@ -75,11 +82,19 @@ def test_admin_api_can_pin_and_unpin_issuer(tmp_path, monkeypatch):
     issued_metadata = metadata()
     headers = {"Authorization": f"Bearer {token}"}
     pinned = client.post(
-        "/admin/federation/pins", headers=headers,
-        json={"metadata": issued_metadata, "expected_issuer_id": issued_metadata["id"], "operator_note": "Manual trust ceremony"},
+        "/admin/federation/pins",
+        headers=headers,
+        json={
+            "metadata": issued_metadata,
+            "expected_issuer_id": issued_metadata["id"],
+            "operator_note": "Manual trust ceremony",
+        },
     )
     assert pinned.status_code == 201, pinned.text
-    assert client.get("/admin/federation/pins", headers=headers).json()["issuers"][0]["id"] == issued_metadata["id"]
+    assert (
+        client.get("/admin/federation/pins", headers=headers).json()["issuers"][0]["id"]
+        == issued_metadata["id"]
+    )
     unpinned = client.delete(f"/admin/federation/pins/{issued_metadata['id']}", headers=headers)
     assert unpinned.status_code == 200
     assert client.get("/admin/federation/pins", headers=headers).json()["issuers"] == []
@@ -89,4 +104,9 @@ def test_federation_management_requires_admin(tmp_path, monkeypatch):
     token = "verify-only-token-" + "V" * 40
     monkeypatch.setenv("SKILLCRED_API_TOKENS", '{"verifier":"' + token + '"}')
     client = TestClient(create_app(tmp_path))
-    assert client.get("/admin/federation/pins", headers={"Authorization": f"Bearer {token}"}).status_code == 403
+    assert (
+        client.get(
+            "/admin/federation/pins", headers={"Authorization": f"Bearer {token}"}
+        ).status_code
+        == 403
+    )

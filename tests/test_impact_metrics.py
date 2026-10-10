@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 
 from fastapi.testclient import TestClient
-
 from skillcred.api import create_app
 from skillcred.impact import ImpactRecordRequest, ImpactStore
 
@@ -49,13 +48,15 @@ def test_impact_api_requires_scoped_verifier_and_admin_export(tmp_path, monkeypa
     client = TestClient(create_app(tmp_path))
     admin_header = {"Authorization": f"Bearer {admin}"}
     registered = client.post(
-        "/admin/clients", headers=admin_header,
+        "/admin/clients",
+        headers=admin_header,
         json={"name": "Impact reporter", "roles": ["verifier"], "scopes": ["impact:write"]},
     )
     assert registered.status_code == 201, registered.text
     client_id = registered.json()["client_id"]
     token = client.post(
-        f"/admin/clients/{client_id}/tokens", headers=admin_header,
+        f"/admin/clients/{client_id}/tokens",
+        headers=admin_header,
         json={"expires_in": 600, "scopes": ["impact:write"]},
     ).json()["access_token"]
     response = client.post(
@@ -76,12 +77,12 @@ def test_impact_rejects_missing_consent_and_personal_identifiers():
     bad_consent["consent_confirmed"] = False
     try:
         ImpactRecordRequest.model_validate(bad_consent)
-        assert False, "consent must be required"
+        raise AssertionError("consent must be required")
     except ValueError:
         pass
     bad_id = _record("person@example.org")
     try:
         ImpactRecordRequest.model_validate(bad_id)
-        assert False, "personal identifier must be rejected"
+        raise AssertionError("personal identifier must be rejected")
     except ValueError:
         pass

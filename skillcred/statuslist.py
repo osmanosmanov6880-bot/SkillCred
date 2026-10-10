@@ -65,11 +65,7 @@ def decode_list(encoded_list: str) -> bytearray:
     try:
         inflater = zlib.decompressobj(wbits=31)
         decompressor = inflater.decompress(compressed, 16 * 1024 * 1024 + 1)
-        if (
-            len(decompressor) > 16 * 1024 * 1024
-            or inflater.unconsumed_tail
-            or inflater.unused_data
-        ):
+        if len(decompressor) > 16 * 1024 * 1024 or inflater.unconsumed_tail or inflater.unused_data:
             raise StatusListError("Decoded status list is unexpectedly large or has trailing data")
         decompressor += inflater.flush(16 * 1024 * 1024 + 1 - len(decompressor))
         if not inflater.eof:

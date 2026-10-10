@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-import json
-
 from fastapi.testclient import TestClient
-
 from skillcred.api import create_app
 
 
@@ -49,17 +46,21 @@ def test_register_client_issue_jwt_and_use_scoped_api(tmp_path, monkeypatch) -> 
     assert b"Pilot issuer" not in (tmp_path / "clients.enc").read_bytes()
 
 
-def test_client_registration_rejects_unknown_scope_and_admin_escalation(tmp_path, monkeypatch) -> None:
+def test_client_registration_rejects_unknown_scope_and_admin_escalation(
+    tmp_path, monkeypatch
+) -> None:
     admin = _admin(monkeypatch)
     client = TestClient(create_app(tmp_path))
     headers = {"Authorization": f"Bearer {admin}"}
     bad_scope = client.post(
-        "/admin/clients", headers=headers,
+        "/admin/clients",
+        headers=headers,
         json={"name": "Bad", "roles": ["issuer"], "scopes": ["credential:revoke"]},
     )
     assert bad_scope.status_code == 400
     bad_admin = client.post(
-        "/admin/clients", headers=headers,
+        "/admin/clients",
+        headers=headers,
         json={"name": "Escalation", "roles": ["admin"]},
     )
     assert bad_admin.status_code == 400
@@ -69,7 +70,9 @@ def test_admin_list_does_not_expose_tokens_or_private_data(tmp_path, monkeypatch
     admin = _admin(monkeypatch)
     client = TestClient(create_app(tmp_path))
     headers = {"Authorization": f"Bearer {admin}"}
-    created = client.post("/admin/clients", headers=headers, json={"name": "Inspect", "roles": ["verifier"]})
+    created = client.post(
+        "/admin/clients", headers=headers, json={"name": "Inspect", "roles": ["verifier"]}
+    )
     client_id = created.json()["client_id"]
     client.post(f"/admin/clients/{client_id}/tokens", headers=headers, json={"expires_in": 600})
     result = client.get("/admin/clients", headers=headers)

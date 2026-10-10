@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Validate SkillCred source/release hygiene without contacting external services."""
+
 from __future__ import annotations
 
 import argparse
@@ -89,9 +90,7 @@ def _is_sensitive_member(name: str) -> bool:
         return True
     if path.suffix.lower() in SENSITIVE_SUFFIXES:
         return True
-    if "private-key" in path.name.lower() or "secret-token" in path.name.lower():
-        return True
-    return False
+    return bool("private-key" in path.name.lower() or "secret-token" in path.name.lower())
 
 
 def _check_archive(path: Path, expected_version: str | None = None) -> list[str]:
@@ -122,17 +121,21 @@ def _check_archive(path: Path, expected_version: str | None = None) -> list[str]
                         stream = archive.extractfile(member)
                         payload = stream.read() if stream else b""
                         if any(marker in payload for marker in SECRET_MARKERS):
-                            errors.append(f"{path.name}: private-key material marker in {member.name}")
+                            errors.append(
+                                f"{path.name}: private-key material marker in {member.name}"
+                            )
                 pkg_infos = [
-                    m for m in members
-                    if m.name.endswith('/PKG-INFO')
-                    and len(PurePosixPath(m.name).parts) == 2
+                    m
+                    for m in members
+                    if m.name.endswith("/PKG-INFO") and len(PurePosixPath(m.name).parts) == 2
                 ]
                 if expected_version and len(pkg_infos) != 1:
                     errors.append(f"{path.name}: expected exactly one PKG-INFO file")
                 for member in pkg_infos:
                     stream = archive.extractfile(member)
-                    metadata_text = stream.read().decode('utf-8', errors='replace') if stream else ''
+                    metadata_text = (
+                        stream.read().decode("utf-8", errors="replace") if stream else ""
+                    )
                     if expected_version and f"Version: {expected_version}" not in metadata_text:
                         errors.append(f"{path.name}: source metadata version mismatch")
         except (OSError, tarfile.TarError) as exc:
@@ -150,11 +153,11 @@ def _check_archive(path: Path, expected_version: str | None = None) -> list[str]
                         errors.append(f"{path.name}: sensitive member {member}")
                     if any(marker in archive.read(member) for marker in SECRET_MARKERS):
                         errors.append(f"{path.name}: private-key material marker in {member}")
-                metadata_names = [n for n in names if n.endswith('.dist-info/METADATA')]
+                metadata_names = [n for n in names if n.endswith(".dist-info/METADATA")]
                 if expected_version and len(metadata_names) != 1:
                     errors.append(f"{path.name}: expected exactly one wheel METADATA file")
                 for metadata_name in metadata_names:
-                    metadata_text = archive.read(metadata_name).decode('utf-8', errors='replace')
+                    metadata_text = archive.read(metadata_name).decode("utf-8", errors="replace")
                     if expected_version and f"Version: {expected_version}" not in metadata_text:
                         errors.append(f"{path.name}: wheel metadata version mismatch")
         except (OSError, zipfile.BadZipFile) as exc:
@@ -176,7 +179,11 @@ def validate(
             metadata = tomllib.load(handle)
         project_version = metadata["project"]["version"]
     except (OSError, KeyError, tomllib.TOMLDecodeError) as exc:
-        return {"status": "fail", "errors": [f"Cannot read project metadata: {exc}"], "warnings": []}
+        return {
+            "status": "fail",
+            "errors": [f"Cannot read project metadata: {exc}"],
+            "warnings": [],
+        }
 
     try:
         init_text = (root / "skillcred/__init__.py").read_text(encoding="utf-8")
@@ -184,7 +191,9 @@ def validate(
         if not match:
             errors.append("skillcred/__init__.py has no literal __version__")
         elif match.group(1) != project_version:
-            errors.append(f"Version mismatch: pyproject={project_version}, package={match.group(1)}")
+            errors.append(
+                f"Version mismatch: pyproject={project_version}, package={match.group(1)}"
+            )
     except OSError as exc:
         errors.append(f"Cannot read package version: {exc}")
 
@@ -202,7 +211,17 @@ def validate(
             if any(part in SENSITIVE_PARTS for part in PurePosixPath(rel).parts):
                 continue
             errors.append(f"Potential secret/credential in source tree: {rel}")
-        elif candidate.is_file() and candidate.suffix.lower() in {".py", ".md", ".txt", ".json", ".yaml", ".yml", ".toml", ".conf", ".hcl"}:
+        elif candidate.is_file() and candidate.suffix.lower() in {
+            ".py",
+            ".md",
+            ".txt",
+            ".json",
+            ".yaml",
+            ".yml",
+            ".toml",
+            ".conf",
+            ".hcl",
+        }:
             try:
                 payload = candidate.read_bytes()
             except OSError:
@@ -231,12 +250,14 @@ def validate(
         try:
             with zipfile.ZipFile(source_zip) as archive:
                 zip_paths = {
-                    PurePosixPath(name).relative_to(PurePosixPath('skillcred-' + project_version)).as_posix()
+                    PurePosixPath(name)
+                    .relative_to(PurePosixPath("skillcred-" + project_version))
+                    .as_posix()
                     for name in archive.namelist()
-                    if not name.endswith('/')
+                    if not name.endswith("/")
                 }
-            dump_text = source_dump.read_text(encoding='utf-8')
-            dump_paths = set(re.findall(r'^## `([^`]+)`$', dump_text, re.MULTILINE))
+            dump_text = source_dump.read_text(encoding="utf-8")
+            dump_paths = set(re.findall(r"^## `([^`]+)`$", dump_text, re.MULTILINE))
             if zip_paths != dump_paths:
                 errors.append(
                     f"Source ZIP/source dump file mismatch: ZIP-only={sorted(zip_paths - dump_paths)[:5]}, "
@@ -245,10 +266,7 @@ def validate(
         except (OSError, zipfile.BadZipFile, ValueError) as exc:
             errors.append(f"Could not compare source ZIP and source dump: {exc}")
 
-    if not errors:
-        status = "pass"
-    else:
-        status = "fail"
+    status = "pass" if not errors else "fail"
     return {
         "project": "SkillCred",
         "version": project_version,
@@ -265,9 +283,21 @@ def validate(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
-    parser.add_argument("--artifact-dir", type=Path, default=None, help="Directory containing wheel and sdist")
-    parser.add_argument("--source-zip", type=Path, default=None, help="Optional source ZIP to scan for sensitive files")
-    parser.add_argument("--source-dump", type=Path, default=None, help="Optional Markdown dump to compare with --source-zip")
+    parser.add_argument(
+        "--artifact-dir", type=Path, default=None, help="Directory containing wheel and sdist"
+    )
+    parser.add_argument(
+        "--source-zip",
+        type=Path,
+        default=None,
+        help="Optional source ZIP to scan for sensitive files",
+    )
+    parser.add_argument(
+        "--source-dump",
+        type=Path,
+        default=None,
+        help="Optional Markdown dump to compare with --source-zip",
+    )
     args = parser.parse_args()
     result = validate(args.root, args.artifact_dir, args.source_zip, args.source_dump)
     print(json.dumps(result, indent=2, ensure_ascii=False))

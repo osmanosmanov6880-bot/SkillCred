@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import os
-import pytest
 
+import pytest
 from skillcred.api import _load_or_create_signing_key
 from skillcred.keys import identity_from_private_key
 from skillcred.storage import WalletError
@@ -79,13 +79,17 @@ def test_legacy_plaintext_key_is_encrypted_then_removed(tmp_path, monkeypatch):
     assert not old.exists()
 
 
-def test_legacy_key_migration_refuses_mismatch_with_existing_encrypted_wallet(tmp_path, monkeypatch):
+def test_legacy_key_migration_refuses_mismatch_with_existing_encrypted_wallet(
+    tmp_path, monkeypatch
+):
     from skillcred.keys import generate_keypair, private_key_to_base64
     from skillcred.storage import save_wallet, wallet_from_key
 
     passphrase = "migration-passphrase-long-enough"
     monkeypatch.setenv("SKILLCRED_KEY_PASSPHRASE", passphrase)
-    save_wallet(tmp_path / "issuer-wallet.scw", wallet_from_key(generate_keypair(), "Existing"), passphrase)
+    save_wallet(
+        tmp_path / "issuer-wallet.scw", wallet_from_key(generate_keypair(), "Existing"), passphrase
+    )
     (tmp_path / "issuer-private-key.b64").write_text(
         private_key_to_base64(generate_keypair()), encoding="ascii"
     )

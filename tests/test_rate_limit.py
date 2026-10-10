@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from fastapi.testclient import TestClient
-
 from skillcred.api import create_app
 
 
@@ -24,17 +23,33 @@ def test_health_and_metrics_are_exempt_from_rate_limit(tmp_path):
 
 def test_path_specific_limit_matches_dynamic_client_routes(tmp_path, monkeypatch):
     import json
-    monkeypatch.setenv("SKILLCRED_RATE_LIMITS_JSON", json.dumps({"GET /admin/clients/{client_id}": 1}))
+
+    monkeypatch.setenv(
+        "SKILLCRED_RATE_LIMITS_JSON", json.dumps({"GET /admin/clients/{client_id}": 1})
+    )
     app = create_app(tmp_path, rate_limit=100, rate_window_seconds=60)
     # The selected route matcher is tested directly because this API doesn't expose
     # a GET detail endpoint; no HTTP surface is added solely for a rate-limit test.
     from starlette.requests import Request
+
     middleware = next(m for m in app.user_middleware if m.cls.__name__ == "RateLimitMiddleware")
     del middleware  # Middleware factory configuration is exercised below with a probe app.
     from fastapi import FastAPI
     from skillcred.rate_limit import RateLimitMiddleware
+
     probe = FastAPI()
     limiter = RateLimitMiddleware(probe, limit=100)
-    scope = {"type": "http", "method": "GET", "path": "/admin/clients/abc", "headers": [], "client": ("127.0.0.1", 1), "scheme": "http", "server": ("test", 80), "query_string": b"", "root_path": "", "http_version": "1.1"}
+    scope = {
+        "type": "http",
+        "method": "GET",
+        "path": "/admin/clients/abc",
+        "headers": [],
+        "client": ("127.0.0.1", 1),
+        "scheme": "http",
+        "server": ("test", 80),
+        "query_string": b"",
+        "root_path": "",
+        "http_version": "1.1",
+    }
     request = Request(scope)
     assert limiter._selected_limit(request) == 1

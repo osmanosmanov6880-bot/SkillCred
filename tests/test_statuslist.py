@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pytest
-
 from skillcred.badge import create_credential
 from skillcred.statuslist import (
     StatusListError,
@@ -148,6 +147,7 @@ def test_status_list_url_validation_rejects_credentialed_and_fragment_urls(
         StatusListManager(
             tmp_path / "state2", private_key, "Issuer", "https://example.org/list#fragment"
         )
+
 
 def test_status_state_file_has_owner_only_permissions(tmp_path, private_key) -> None:
     import os

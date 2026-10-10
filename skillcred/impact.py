@@ -4,6 +4,7 @@ The schema deliberately has no person name, email, learner id, IP address, or fr
 field. `organization_ref` is a participant-provided pseudonym, not an organization name.
 The SQLite file stays in the local SkillCred data directory and is not sent elsewhere.
 """
+
 from __future__ import annotations
 
 import csv
@@ -13,9 +14,9 @@ import os
 import sqlite3
 import threading
 import time
-from pathlib import Path
-from contextlib import contextmanager
 from collections.abc import Iterator
+from contextlib import contextmanager
+from pathlib import Path
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -45,7 +46,9 @@ class ImpactRecordRequest(BaseModel):
     @field_validator("currency")
     @classmethod
     def require_currency_for_costs(cls, currency: str | None, info):
-        costs_present = info.data.get("baseline_cost") is not None or info.data.get("current_cost") is not None
+        costs_present = (
+            info.data.get("baseline_cost") is not None or info.data.get("current_cost") is not None
+        )
         if costs_present and currency is None:
             raise ValueError("currency is required when costs are supplied")
         return currency
@@ -117,9 +120,15 @@ class ImpactStore:
                     baseline_cost, current_cost, currency, satisfaction, portability_passed
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
-                    int(time.time()), data["organization_ref"], data["scenario"],
-                    data["baseline_seconds"], data["current_seconds"], data["baseline_cost"],
-                    data["current_cost"], data["currency"], data["satisfaction"],
+                    int(time.time()),
+                    data["organization_ref"],
+                    data["scenario"],
+                    data["baseline_seconds"],
+                    data["current_seconds"],
+                    data["baseline_cost"],
+                    data["current_cost"],
+                    data["currency"],
+                    data["satisfaction"],
                     int(data["portability_passed"]),
                 ),
             )
@@ -144,26 +153,62 @@ class ImpactStore:
         for (scenario, currency), values in sorted(grouped.items()):
             if len(values) < minimum_group_size:
                 continue
-            seconds_delta = [100 * (r["baseline_seconds"] - r["current_seconds"]) / r["baseline_seconds"] for r in values]
-            cost_pairs = [r for r in values if r["baseline_cost"] is not None and r["current_cost"] is not None]
-            groups.append({
-                "scenario": scenario,
-                "currency": currency,
-                "records": len(values),
-                "mean_verification_time_reduction_percent": round(sum(seconds_delta) / len(seconds_delta), 2),
-                "mean_satisfaction_1_to_5": round(sum(r["satisfaction"] for r in values) / len(values), 2),
-                "portability_success_rate": round(sum(r["portability_passed"] for r in values) / len(values), 4),
-                "cost_savings": round(sum(r["baseline_cost"] - r["current_cost"] for r in cost_pairs), 2) if cost_pairs else None,
-                "cost_records": len(cost_pairs),
-            })
-        return {"records": len(rows), "groups": groups, "privacy_minimum_group_size": minimum_group_size}
+            seconds_delta = [
+                100 * (r["baseline_seconds"] - r["current_seconds"]) / r["baseline_seconds"]
+                for r in values
+            ]
+            cost_pairs = [
+                r
+                for r in values
+                if r["baseline_cost"] is not None and r["current_cost"] is not None
+            ]
+            groups.append(
+                {
+                    "scenario": scenario,
+                    "currency": currency,
+                    "records": len(values),
+                    "mean_verification_time_reduction_percent": round(
+                        sum(seconds_delta) / len(seconds_delta), 2
+                    ),
+                    "mean_satisfaction_1_to_5": round(
+                        sum(r["satisfaction"] for r in values) / len(values), 2
+                    ),
+                    "portability_success_rate": round(
+                        sum(r["portability_passed"] for r in values) / len(values), 4
+                    ),
+                    "cost_savings": round(
+                        sum(r["baseline_cost"] - r["current_cost"] for r in cost_pairs), 2
+                    )
+                    if cost_pairs
+                    else None,
+                    "cost_records": len(cost_pairs),
+                }
+            )
+        return {
+            "records": len(rows),
+            "groups": groups,
+            "privacy_minimum_group_size": minimum_group_size,
+        }
 
     def export_json(self) -> str:
-        return json.dumps({"records": self.records(), "summary": self.summary()}, ensure_ascii=False, indent=2)
+        return json.dumps(
+            {"records": self.records(), "summary": self.summary()}, ensure_ascii=False, indent=2
+        )
 
     def export_csv(self) -> str:
         rows = self.records()
-        fields = ["received_at", "organization_ref", "scenario", "baseline_seconds", "current_seconds", "baseline_cost", "current_cost", "currency", "satisfaction", "portability_passed"]
+        fields = [
+            "received_at",
+            "organization_ref",
+            "scenario",
+            "baseline_seconds",
+            "current_seconds",
+            "baseline_cost",
+            "current_cost",
+            "currency",
+            "satisfaction",
+            "portability_passed",
+        ]
         out = io.StringIO(newline="")
         writer = csv.DictWriter(out, fieldnames=fields, extrasaction="ignore")
         writer.writeheader()

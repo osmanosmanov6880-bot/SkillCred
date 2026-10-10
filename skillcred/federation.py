@@ -4,6 +4,7 @@ Discovery only publishes metadata; it does not imply trust. This module never fe
 remote URL. Operators must inspect metadata, compare the DID out of band, and explicitly
 pin the expected DID. A pin is a local operator decision, not a global certification.
 """
+
 from __future__ import annotations
 
 import json
@@ -78,7 +79,11 @@ def validate_issuer_metadata(metadata: Any) -> list[str]:
     if metadata.get("type") != "SkillCredIssuerMetadata":
         errors.append("type must equal SkillCredIssuerMetadata")
     profiles = metadata.get("credentialProfiles")
-    if not isinstance(profiles, list) or not profiles or any(not isinstance(item, str) for item in profiles):
+    if (
+        not isinstance(profiles, list)
+        or not profiles
+        or any(not isinstance(item, str) for item in profiles)
+    ):
         errors.append("credentialProfiles must be a non-empty string array")
     suites = metadata.get("proofSuites")
     if not isinstance(suites, list) or "eddsa-jcs-2022" not in suites:
@@ -140,12 +145,16 @@ class IssuerTrustStore:
             if temporary.exists():
                 temporary.unlink()
 
-    def pin(self, metadata: Any, expected_issuer_id: str, *, operator_note: str = "") -> dict[str, Any]:
+    def pin(
+        self, metadata: Any, expected_issuer_id: str, *, operator_note: str = ""
+    ) -> dict[str, Any]:
         errors = validate_issuer_metadata(metadata)
         if errors:
             raise FederationError("Invalid issuer metadata: " + "; ".join(errors))
         if metadata["id"] != expected_issuer_id:
-            raise FederationError("Issuer DID does not match the independently supplied expected DID")
+            raise FederationError(
+                "Issuer DID does not match the independently supplied expected DID"
+            )
         if len(operator_note) > 500:
             raise FederationError("operator_note must be at most 500 characters")
         record = {
