@@ -11,4 +11,4 @@ Public service: https://skillcred-pilot-api.onrender.com
 
 No API tokens, passphrases, private keys, or credential subject personal data are included. The tests used synthetic credentials.
 
-Note on audit completeness: the smoke-script created raw per-request JSON/HTTP output files on the operator's PC. Those additional local files should be added from the local `deployment-evidence/` directory if they are present; this index does not claim to contain files that were not uploaded to GitHub.
+Raw per-request JSON responses, HTTP headers, timing metadata, request payloads for synthetic credentials, and post-restart recovery results are now included in this directory. These files document the external HTTPS smoke test and the successful recovery verification. The test credentials are synthetic; do not add real subjects or secret values to this folder.
