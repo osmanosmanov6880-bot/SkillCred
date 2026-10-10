@@ -195,3 +195,11 @@ An administrator may pin reviewed metadata locally via `POST /admin/federation/p
 **Public endpoint:** Not assigned yet. The placeholder URL must be replaced only after a Render deployment is live and externally verified.
 
 The release is not considered publicly deployed until the live HTTPS `/health` and `/ready` checks return HTTP 200 and an external synthetic credential test proves `issue → verify → revoke → verify` with the final verification reporting `valid=false` and `status=revoked`. Local test results are not public deployment evidence. See [`deploy/render/README.md`](deploy/render/README.md) and [`deploy/production/runbook.md`](deploy/production/runbook.md).
+
+## Public pilot deployment (2026-10-10)
+
+The experimental pilot API is deployed at **https://skillcred-pilot-api.onrender.com** on Render (Frankfurt, Starter plan). The service has a 1 GB persistent disk mounted at `/var/lib/skillcred`; Render's health-check path is `/ready`.
+
+An external Windows/Git Bash smoke test completed over HTTPS. All eight requests returned HTTP 200: `/health`, `/ready`, `/issuer`, `POST /issue`, `POST /verify` before revocation, `POST /revoke`, `POST /verify` after revocation, and `/metrics`. The active credential verified with `valid=true, status=active`; after revocation it returned `valid=false, status=revoked`. The run's measured request times and transcript excerpt are in [deployment-evidence](deployment-evidence/README.md).
+
+A subsequent Render redeploy of commit `c2d45bf03acd43e11f2ec1b4430abba7fef80efa` reached `Live`; Render logs show Uvicorn started and `GET /ready` returned 200. The operator reports the post-restart verification run completed successfully. This remains an **experimental pilot**, not a production certification or 1EdTech certification.
