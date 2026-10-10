@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.responses import JSONResponse
@@ -360,6 +360,51 @@ def create_app(
         if response.status_code >= 400:
             metrics.errors.labels(f"http_{response.status_code}").inc()
         return response
+
+    @application.get("/", response_class=HTMLResponse, include_in_schema=False)
+    def homepage() -> HTMLResponse:
+        page = """<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101522">
+<title>SkillCred — Portable proof of skills</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#101522;color:#edf2ff}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 15% 0%,#1b3151 0,transparent 45%),#101522}
+main{max-width:880px;margin:0 auto;padding:48px 22px 32px}.brand{display:flex;align-items:center;gap:12px;font-size:15px;font-weight:750;letter-spacing:.12em;text-transform:uppercase}
+.mark{display:grid;place-items:center;width:40px;height:40px;border:1px solid #5c85b7;border-radius:12px;color:#b8dcff;font-size:20px}
+.panel{margin-top:38px;padding:clamp(24px,5vw,48px);border:1px solid #2b3a52;border-radius:24px;background:#131c2bee;box-shadow:0 24px 80px #0005}
+.eyebrow{color:#8bc6ff;font-size:12px;font-weight:750;letter-spacing:.16em;text-transform:uppercase}h1{max-width:680px;margin:16px 0;font-size:clamp(36px,6vw,58px);line-height:1.05;letter-spacing:-.04em}
+.lead{max-width:650px;color:#b8c4d9;font-size:18px;line-height:1.7}.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.button,.link{display:inline-flex;align-items:center;min-height:44px;padding:11px 15px;border:1px solid #3c5270;border-radius:12px;color:#eaf3ff;text-decoration:none}
+.button.primary{border-color:#9bcfff;background:#b8dcff;color:#102035;font-weight:750}a:focus-visible{outline:3px solid #ffd166;outline-offset:3px}
+section{margin-top:30px}h2{margin-bottom:8px;font-size:18px}p{line-height:1.65}.muted{color:#aab8cc}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:18px}
+.item{padding:16px;border:1px solid #2b3a52;border-radius:14px;background:#151f30}.item strong{display:block;margin-bottom:6px}
+.notice{margin-top:28px;padding:15px 17px;border-left:3px solid #e9bd61;border-radius:8px;background:#282719;color:#eee2bd}footer{padding:22px 4px;color:#8391a8;font-size:13px}
+@media(max-width:520px){main{padding-top:28px}.actions a{width:100%}}
+</style>
+</head>
+<body><main>
+<div class="brand"><span class="mark" aria-hidden="true">S</span><span>SkillCred</span></div>
+<div class="panel">
+<div class="eyebrow">Open source · Experimental pilot · API v0.3.0</div>
+<h1>Portable proof of practical skills.</h1>
+<p class="lead">SkillCred is an open pilot API for issuing, verifying, exporting and revoking cryptographically signed skill credentials. Credentials can be checked independently without a mandatory central database of learners.</p>
+<div class="actions"><a class="button primary" href="/health">Check service health ↗</a><a class="button" href="/ready">Check readiness ↗</a><a class="button" href="https://github.com/osmanosmanov6880-bot/SkillCred" rel="noopener noreferrer">Source on GitHub ↗</a></div>
+<section><h2>What this service provides</h2><div class="grid">
+<div class="item"><strong>Issue</strong><span class="muted">Create a signed credential for an assessed skill.</span></div>
+<div class="item"><strong>Verify</strong><span class="muted">Check credential integrity and issuer signature.</span></div>
+<div class="item"><strong>Revoke</strong><span class="muted">Publish status so verifiers can reject a revoked credential.</span></div>
+</div></section>
+<section><h2>Developer access</h2><p class="muted">Protected operations require a role-authorized Bearer token. Interactive API docs are disabled on this deployment. This page is informational; it does not issue credentials or accept learner data.</p></section>
+<div class="notice"><strong>Pilot notice:</strong> This is an experimental service, not a certified 1EdTech implementation or a full learner portal. Do not submit sensitive personal data or rely on it for high-impact decisions.</div>
+</div>
+<footer>SkillCred 0.3.0 · Apache-2.0 · <a class="link" href="https://github.com/osmanosmanov6880-bot/SkillCred">Source code and validation notes</a></footer>
+</main></body></html>"""
+        return HTMLResponse(content=page)
 
     @application.get("/health")
     def health() -> dict[str, Any]:
