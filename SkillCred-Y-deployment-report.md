@@ -1,7 +1,7 @@
 # SkillCred Y-deployment report
 
 Date: 2026-10-10
-Status: public HTTPS smoke test **PASS**; operator-reported recovery check **PASS**.
+Status: public HTTPS smoke test **PASS**; post-restart recovery check **PASS**, with raw HTTP outputs published.
 Project status: experimental pilot; not 1EdTech-certified.
 
 ## Public service
@@ -69,7 +69,7 @@ The first build succeeded, but the first container start failed because applicat
 
 Before the recovery redeploy, a separate synthetic credential was issued with status-list index `1`; the external verifier returned HTTP 200 and `valid=true, status=active`. Its credential ID was `urn:uuid:83e1b31f-82ce-4492-8276-cb630415ca93`.
 
-The operator subsequently reported that all post-restart verification checks passed. The exact raw output of that final recovery script was not included in the conversation transcript; keep the local output files in `deployment-evidence/` with the published release artifacts for a full audit trail. This limitation is disclosed rather than presenting an unobserved response body as if it were captured here.
+The operator ran the fixed recovery script after the Render restart, and the raw response files have now been published in `deployment-evidence/`. All five post-restart checks returned HTTP 200: `/health`, `/ready`, `/issuer`, verification of the active synthetic credential, and verification of the previously revoked credential. The issuer DID before and after restart matched (`did:key:z6MktmPmK6AoaieCguVRMorrL2b16gEJgJqreTaJRWBWR37s`). The active credential remained `valid=true`, `signature_valid=true`, `status=active`; the previously revoked credential remained `valid=false`, `signature_valid=true`, `status=revoked`, with error `Credential is revoked`. An earlier recovery-check attempt returned HTTP 401 for the verification request; the subsequent corrected rerun passed. The published files preserve the final successful response bodies and timings.
 
 ## Evidence files
 
@@ -77,5 +77,8 @@ The operator subsequently reported that all post-restart verification checks pas
 - [External transcript excerpt](deployment-evidence/external-smoke-transcript.md)
 - [Render lifecycle log excerpt](deployment-evidence/render-lifecycle.md)
 - [Recovery verification record](deployment-evidence/recovery-operator-report.md)
+- [Raw recovery summary](deployment-evidence/recovery-after-restart-summary.tsv)
+- [Active credential response after restart](deployment-evidence/recovery_active_after_restart.json)
+- [Revoked credential response after restart](deployment-evidence/recovery_revoked_after_restart.json)
 
 Secrets, API tokens and passphrases are intentionally excluded from the public repository.
