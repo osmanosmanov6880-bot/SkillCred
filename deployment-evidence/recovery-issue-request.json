@@ -1,0 +1,5 @@
+{
+  "achievement_name": "SkillCred persistence recovery test 20261010T201934Z",
+  "achievement_description": "Synthetic deployment acceptance credential used only to check persistent issuer key and revocation state after restart. No real participant data.",
+  "subject_id": "urn:skillcred:recovery-test:20261010T201934Z"
+}

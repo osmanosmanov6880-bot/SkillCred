@@ -1,0 +1,142 @@
+# HELP skillcred_http_requests_total HTTP requests handled by SkillCred
+# TYPE skillcred_http_requests_total counter
+skillcred_http_requests_total{method="HEAD",route="/unmatched",status="404"} 1.0
+skillcred_http_requests_total{method="GET",route="/ready",status="200"} 504.0
+skillcred_http_requests_total{method="GET",route="/health",status="200"} 2.0
+skillcred_http_requests_total{method="GET",route="/issuer",status="200"} 2.0
+skillcred_http_requests_total{method="POST",route="/issue",status="401"} 1.0
+skillcred_http_requests_total{method="POST",route="/issue",status="200"} 1.0
+skillcred_http_requests_total{method="POST",route="/verify",status="200"} 2.0
+skillcred_http_requests_total{method="POST",route="/revoke",status="200"} 1.0
+# HELP skillcred_http_requests_created HTTP requests handled by SkillCred
+# TYPE skillcred_http_requests_created gauge
+skillcred_http_requests_created{method="HEAD",route="/unmatched",status="404"} 1.791660778950601e+09
+skillcred_http_requests_created{method="GET",route="/ready",status="200"} 1.7916607808709447e+09
+skillcred_http_requests_created{method="GET",route="/health",status="200"} 1.7916627077562332e+09
+skillcred_http_requests_created{method="GET",route="/issuer",status="200"} 1.7916627092984524e+09
+skillcred_http_requests_created{method="POST",route="/issue",status="401"} 1.7916627099201584e+09
+skillcred_http_requests_created{method="POST",route="/issue",status="200"} 1.7916629236516135e+09
+skillcred_http_requests_created{method="POST",route="/verify",status="200"} 1.7916629255343797e+09
+skillcred_http_requests_created{method="POST",route="/revoke",status="200"} 1.791662926345238e+09
+# HELP skillcred_http_request_duration_seconds HTTP request duration in seconds
+# TYPE skillcred_http_request_duration_seconds histogram
+skillcred_http_request_duration_seconds_bucket{le="0.005",method="HEAD",route="/unmatched"} 1.0
+skillcred_http_request_duration_seconds_bucket{le="0.01",method="HEAD",route="/unmatched"} 1.0
+skillcred_http_request_duration_seconds_bucket{le="0.025",method="HEAD",route="/unmatched"} 1.0
+skillcred_http_request_duration_seconds_bucket{le="0.05",method="HEAD",route="/unmatched"} 1.0
+skillcred_http_request_duration_seconds_bucket{le="0.1",method="HEAD",route="/unmatched"} 1.0
+skillcred_http_request_duration_seconds_bucket{le="0.25",method="HEAD",route="/unmatched"} 1.0
+skillcred_http_request_duration_seconds_bucket{le="0.5",method="HEAD",route="/unmatched"} 1.0
+skillcred_http_request_duration_seconds_bucket{le="1.0",method="HEAD",route="/unmatched"} 1.0
+skillcred_http_request_duration_seconds_bucket{le="2.5",method="HEAD",route="/unmatched"} 1.0
+skillcred_http_request_duration_seconds_bucket{le="5.0",method="HEAD",route="/unmatched"} 1.0
+skillcred_http_request_duration_seconds_bucket{le="+Inf",method="HEAD",route="/unmatched"} 1.0
+skillcred_http_request_duration_seconds_count{method="HEAD",route="/unmatched"} 1.0
+skillcred_http_request_duration_seconds_sum{method="HEAD",route="/unmatched"} 0.0005843006074428558
+skillcred_http_request_duration_seconds_bucket{le="0.005",method="GET",route="/ready"} 503.0
+skillcred_http_request_duration_seconds_bucket{le="0.01",method="GET",route="/ready"} 504.0
+skillcred_http_request_duration_seconds_bucket{le="0.025",method="GET",route="/ready"} 504.0
+skillcred_http_request_duration_seconds_bucket{le="0.05",method="GET",route="/ready"} 504.0
+skillcred_http_request_duration_seconds_bucket{le="0.1",method="GET",route="/ready"} 504.0
+skillcred_http_request_duration_seconds_bucket{le="0.25",method="GET",route="/ready"} 504.0
+skillcred_http_request_duration_seconds_bucket{le="0.5",method="GET",route="/ready"} 504.0
+skillcred_http_request_duration_seconds_bucket{le="1.0",method="GET",route="/ready"} 504.0
+skillcred_http_request_duration_seconds_bucket{le="2.5",method="GET",route="/ready"} 504.0
+skillcred_http_request_duration_seconds_bucket{le="5.0",method="GET",route="/ready"} 504.0
+skillcred_http_request_duration_seconds_bucket{le="+Inf",method="GET",route="/ready"} 504.0
+skillcred_http_request_duration_seconds_count{method="GET",route="/ready"} 504.0
+skillcred_http_request_duration_seconds_sum{method="GET",route="/ready"} 0.5080288583412766
+skillcred_http_request_duration_seconds_bucket{le="0.005",method="GET",route="/health"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="0.01",method="GET",route="/health"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="0.025",method="GET",route="/health"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="0.05",method="GET",route="/health"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="0.1",method="GET",route="/health"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="0.25",method="GET",route="/health"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="0.5",method="GET",route="/health"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="1.0",method="GET",route="/health"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="2.5",method="GET",route="/health"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="5.0",method="GET",route="/health"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="+Inf",method="GET",route="/health"} 2.0
+skillcred_http_request_duration_seconds_count{method="GET",route="/health"} 2.0
+skillcred_http_request_duration_seconds_sum{method="GET",route="/health"} 0.0022532306611537933
+skillcred_http_request_duration_seconds_bucket{le="0.005",method="GET",route="/issuer"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="0.01",method="GET",route="/issuer"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="0.025",method="GET",route="/issuer"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="0.05",method="GET",route="/issuer"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="0.1",method="GET",route="/issuer"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="0.25",method="GET",route="/issuer"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="0.5",method="GET",route="/issuer"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="1.0",method="GET",route="/issuer"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="2.5",method="GET",route="/issuer"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="5.0",method="GET",route="/issuer"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="+Inf",method="GET",route="/issuer"} 2.0
+skillcred_http_request_duration_seconds_count{method="GET",route="/issuer"} 2.0
+skillcred_http_request_duration_seconds_sum{method="GET",route="/issuer"} 0.002085327170789242
+skillcred_http_request_duration_seconds_bucket{le="0.005",method="POST",route="/issue"} 1.0
+skillcred_http_request_duration_seconds_bucket{le="0.01",method="POST",route="/issue"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="0.025",method="POST",route="/issue"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="0.05",method="POST",route="/issue"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="0.1",method="POST",route="/issue"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="0.25",method="POST",route="/issue"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="0.5",method="POST",route="/issue"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="1.0",method="POST",route="/issue"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="2.5",method="POST",route="/issue"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="5.0",method="POST",route="/issue"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="+Inf",method="POST",route="/issue"} 2.0
+skillcred_http_request_duration_seconds_count{method="POST",route="/issue"} 2.0
+skillcred_http_request_duration_seconds_sum{method="POST",route="/issue"} 0.010334248654544353
+skillcred_http_request_duration_seconds_bucket{le="0.005",method="POST",route="/verify"} 0.0
+skillcred_http_request_duration_seconds_bucket{le="0.01",method="POST",route="/verify"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="0.025",method="POST",route="/verify"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="0.05",method="POST",route="/verify"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="0.1",method="POST",route="/verify"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="0.25",method="POST",route="/verify"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="0.5",method="POST",route="/verify"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="1.0",method="POST",route="/verify"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="2.5",method="POST",route="/verify"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="5.0",method="POST",route="/verify"} 2.0
+skillcred_http_request_duration_seconds_bucket{le="+Inf",method="POST",route="/verify"} 2.0
+skillcred_http_request_duration_seconds_count{method="POST",route="/verify"} 2.0
+skillcred_http_request_duration_seconds_sum{method="POST",route="/verify"} 0.014008043333888054
+skillcred_http_request_duration_seconds_bucket{le="0.005",method="POST",route="/revoke"} 0.0
+skillcred_http_request_duration_seconds_bucket{le="0.01",method="POST",route="/revoke"} 1.0
+skillcred_http_request_duration_seconds_bucket{le="0.025",method="POST",route="/revoke"} 1.0
+skillcred_http_request_duration_seconds_bucket{le="0.05",method="POST",route="/revoke"} 1.0
+skillcred_http_request_duration_seconds_bucket{le="0.1",method="POST",route="/revoke"} 1.0
+skillcred_http_request_duration_seconds_bucket{le="0.25",method="POST",route="/revoke"} 1.0
+skillcred_http_request_duration_seconds_bucket{le="0.5",method="POST",route="/revoke"} 1.0
+skillcred_http_request_duration_seconds_bucket{le="1.0",method="POST",route="/revoke"} 1.0
+skillcred_http_request_duration_seconds_bucket{le="2.5",method="POST",route="/revoke"} 1.0
+skillcred_http_request_duration_seconds_bucket{le="5.0",method="POST",route="/revoke"} 1.0
+skillcred_http_request_duration_seconds_bucket{le="+Inf",method="POST",route="/revoke"} 1.0
+skillcred_http_request_duration_seconds_count{method="POST",route="/revoke"} 1.0
+skillcred_http_request_duration_seconds_sum{method="POST",route="/revoke"} 0.005547870881855488
+# HELP skillcred_http_request_duration_seconds_created HTTP request duration in seconds
+# TYPE skillcred_http_request_duration_seconds_created gauge
+skillcred_http_request_duration_seconds_created{method="HEAD",route="/unmatched"} 1.7916607789506264e+09
+skillcred_http_request_duration_seconds_created{method="GET",route="/ready"} 1.7916607808709688e+09
+skillcred_http_request_duration_seconds_created{method="GET",route="/health"} 1.7916627077562585e+09
+skillcred_http_request_duration_seconds_created{method="GET",route="/issuer"} 1.7916627092984767e+09
+skillcred_http_request_duration_seconds_created{method="POST",route="/issue"} 1.7916627099201984e+09
+skillcred_http_request_duration_seconds_created{method="POST",route="/verify"} 1.7916629255344017e+09
+skillcred_http_request_duration_seconds_created{method="POST",route="/revoke"} 1.7916629263452604e+09
+# HELP skillcred_operations_total Credential operations by operation and outcome
+# TYPE skillcred_operations_total counter
+skillcred_operations_total{operation="issue",outcome="success"} 1.0
+skillcred_operations_total{operation="verify",outcome="success"} 1.0
+skillcred_operations_total{operation="revoke",outcome="success"} 1.0
+skillcred_operations_total{operation="verify",outcome="invalid"} 1.0
+# HELP skillcred_operations_created Credential operations by operation and outcome
+# TYPE skillcred_operations_created gauge
+skillcred_operations_created{operation="issue",outcome="success"} 1.7916629236509852e+09
+skillcred_operations_created{operation="verify",outcome="success"} 1.7916629255339408e+09
+skillcred_operations_created{operation="revoke",outcome="success"} 1.7916629263448036e+09
+skillcred_operations_created{operation="verify",outcome="invalid"} 1.7916629268015249e+09
+# HELP skillcred_errors_total Handled SkillCred API errors
+# TYPE skillcred_errors_total counter
+skillcred_errors_total{category="http_404"} 1.0
+skillcred_errors_total{category="http_401"} 1.0
+# HELP skillcred_errors_created Handled SkillCred API errors
+# TYPE skillcred_errors_created gauge
+skillcred_errors_created{category="http_404"} 1.7916607789506736e+09
+skillcred_errors_created{category="http_401"} 1.7916627099202347e+09

@@ -1,0 +1,6 @@
+check	http_code	seconds
+recovery_health_after_restart	200	0.680147
+recovery_ready_after_restart	200	0.277886
+recovery_issuer_after_restart	200	0.375341
+recovery_active_after_restart	200	0.395947
+recovery_revoked_after_restart	200	0.285230

@@ -1,0 +1,9 @@
+check	http_code	seconds
+health	200	0.468966
+ready	200	0.444017
+issuer	200	0.352503
+issue	200	0.341286
+verify_active	200	1.378322
+revoke	200	0.436245
+verify_revoked	200	0.455052
+metrics	200	0.369572

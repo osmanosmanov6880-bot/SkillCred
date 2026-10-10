@@ -1,0 +1,15 @@
+HTTP/1.1 200 OK
+Date: Sat, 10 Oct 2026 20:08:43 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Connection: keep-alive
+cf-cache-status: DYNAMIC
+rndr-id: 87854c4c-6d20-4a11
+Server: cloudflare
+vary: Accept-Encoding
+x-ratelimit-backend: memory
+x-ratelimit-limit: 12
+x-render-origin-server: uvicorn
+CF-RAY: a4884238986485aa-ARN
+alt-svc: h3=":443"; ma=86400
+

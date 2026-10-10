@@ -1,0 +1,4 @@
+prepared_utc=2026-10-10T20:19:36Z
+base_url=https://skillcred-pilot-api.onrender.com
+credential_file=deployment-evidence/recovery_issue.json
+verification_file=deployment-evidence/recovery_verify_before_restart.json
