@@ -70,3 +70,18 @@ python scripts/validate_release.py --root . --artifact-dir /path/to/dist --sourc
 - RFC 8785: https://www.rfc-editor.org/rfc/rfc8785
 
 **Release decision:** suitable only for a limited, supervised external pilot with synthetic or low-risk credentials, private-network exposure, protected secrets and a documented rollback. Public production use and official conformance are not established by these local checks.
+
+## Public deployment verification — 2026-10-10
+
+Public service: https://skillcred-pilot-api.onrender.com
+
+- Render deploy status: `live`.
+- Render runtime: Uvicorn started successfully; internal `GET /ready` responded HTTP 200 after initial deployment and after a subsequent redeploy.
+- Storage configuration: Render Starter web service with a 1 GB persistent disk mounted at `/var/lib/skillcred`.
+- External operator-run HTTPS smoke test: `/health`, `/ready`, `/issuer`, `/issue`, active `/verify`, `/revoke`, revoked `/verify`, and `/metrics` all returned HTTP 200.
+- Active proof result: `valid=true`, `signature_valid=true`, `status=active`.
+- Post-revocation proof result: `valid=false`, `signature_valid=true`, `status=revoked`.
+- The operator also reported that the recovery verifier completed successfully after the subsequent Render redeploy. The recovery credential was issued and verified as active before restart; its post-restart raw console transcript remains in the operator's local evidence directory until that directory is pushed.
+- Full external-smoke timings, credential IDs, public issuer DID, and Render lifecycle timestamps are documented in [SkillCred-Y-deployment-report.md](SkillCred-Y-deployment-report.md) and [deployment-evidence](deployment-evidence/README.md).
+
+This report documents pilot deployment checks only. It is not evidence of 1EdTech certification or full standards interoperability.
