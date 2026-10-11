@@ -61,7 +61,7 @@ function jcs(v){
  throw new Error("Неподдерживаемое значение в JSON");
 }
 async function digest(v){return new Uint8Array(await crypto.subtle.digest("SHA-256",encoder.encode(jcs(v))))}
-function now(){return new Date().toISOString().replace(/\\.\\d{3}Z$/,"Z")}
+function now(){return new Date().toISOString().split(".")[0]+"Z"}
 function proofOptions(document,verificationMethod){return {"@context":JSON.parse(JSON.stringify(document["@context"])),"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":now(),"verificationMethod":verificationMethod,"proofPurpose":"assertionMethod"}}
 async function signDocument(document,privateKey,verificationMethod){
  const cfg=proofOptions(document,verificationMethod);
