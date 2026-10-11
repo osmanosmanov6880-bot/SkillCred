@@ -27,6 +27,8 @@ services:
         sync: false
       - key: SKILLCRED_API_TOKENS
         sync: false
+      - key: DEMO_ISSUER_TOKEN
+        generateValue: true
       - key: SKILLCRED_STATUS_LIST_URL
         sync: false
     disk:
