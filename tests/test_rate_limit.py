@@ -53,3 +53,26 @@ def test_path_specific_limit_matches_dynamic_client_routes(tmp_path, monkeypatch
     }
     request = Request(scope)
     assert limiter._selected_limit(request) == 1
+
+
+
+def test_public_demo_routes_have_narrow_limits(monkeypatch):
+    import os
+
+    monkeypatch.delenv("SKILLCRED_RATE_LIMITS_JSON", raising=False)
+    from fastapi import FastAPI
+    from starlette.requests import Request
+    from skillcred.rate_limit import RateLimitMiddleware
+
+    limiter = RateLimitMiddleware(FastAPI(), limit=100, window_seconds=60)
+
+    def request_for(path: str) -> Request:
+        return Request({
+            "type": "http", "method": "POST", "path": path, "headers": [],
+            "client": ("127.0.0.1", 1234), "scheme": "https", "server": ("test", 443),
+            "query_string": b"", "root_path": "", "http_version": "1.1",
+        })
+
+    assert limiter._selected_limit(request_for("/demo/issue")) == 5
+    assert limiter._selected_limit(request_for("/demo/revoke")) == 5
+    assert limiter._selected_limit(request_for("/demo/verify")) == 30
