@@ -33,6 +33,9 @@ _DEFAULT_PATH_LIMITS = {
     "POST /admin/clients/{client_id}/tokens": 20,
     "POST /admin/clients/{client_id}/rotate": 10,
     "POST /verify": 90,
+    "POST /demo/issue": 5,
+    "POST /demo/revoke": 5,
+    "POST /demo/verify": 30,
 }
 _DEFAULT_ROLE_LIMITS = {"issuer": 12, "revoker": 12, "verifier": 90, "admin": 60}
 
