@@ -164,6 +164,11 @@ def test_public_demo_round_trip_persists_across_app_restart(tmp_path, monkeypatc
     issued = first.post("/demo/issue")
     assert issued.status_code == 200, issued.text
     credential = issued.json()
+    production_issuer = first.get("/issuer").json()["id"]
+    assert credential["issuer"]["id"] != production_issuer
+    demo_status_list = first.get("/demo/status-list")
+    assert demo_status_list.status_code == 200
+    assert demo_status_list.json()["issuer"]["id"] == credential["issuer"]["id"]
     assert credential["proof"]["cryptosuite"] == "eddsa-jcs-2022"
     assert credential["credentialSubject"]["achievement"]["name"] == (
         "Practical safety — browser demo"
