@@ -363,6 +363,9 @@ def create_app(
 
     @application.get("/", response_class=HTMLResponse, include_in_schema=False)
     def homepage() -> HTMLResponse:
+        static_homepage = Path(__file__).parent / "static" / "index.html"
+        if static_homepage.is_file():
+            return HTMLResponse(content=static_homepage.read_text(encoding="utf-8"))
         page = """<!doctype html>
 <html lang="ru">
 <head>
