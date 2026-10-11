@@ -1,0 +1,26 @@
+name: SkillCred live demo verification
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/live_demo_smoke.py"
+      - ".github/workflows/live-demo-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  public-api:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Test the live API and full synthetic credential cycle
+        run: python scripts/live_demo_smoke.py
