@@ -207,6 +207,40 @@ def _load_or_create_signing_key(
     return key, True
 
 
+def _load_or_create_demo_signing_key(
+    data_dir: Path, issuer_name: str
+) -> tuple[Ed25519PrivateKey, bool]:
+    """Load or create a separate encrypted key for public demo credentials.
+
+    The demo issuer never uses the production issuer's signing key. An optional
+    DEMO_ISSUER_PRIVATE_KEY_B64 secret can be injected explicitly; otherwise the
+    dedicated wallet is encrypted using the configured SkillCred wallet passphrase.
+    """
+    direct_key = os.environ.get("DEMO_ISSUER_PRIVATE_KEY_B64")
+    if direct_key:
+        return private_key_from_base64(direct_key), True
+
+    wallet_path = data_dir / "demo-issuer-wallet.scw"
+    passphrase = _read_passphrase()
+    if wallet_path.exists():
+        if not passphrase:
+            raise RuntimeError(
+                "Demo issuer wallet exists; configure SKILLCRED_KEY_PASSPHRASE "
+                "to unlock it"
+            )
+        wallet = load_wallet(wallet_path, passphrase)
+        return private_key_from_base64(str(wallet["private_key"])), True
+
+    if not passphrase:
+        # Do not create a process-local demo key: it would make the issuer DID
+        # unstable and invalidate previously issued demo credentials on restart.
+        return generate_keypair(), False
+
+    key = generate_keypair()
+    save_wallet(wallet_path, wallet_from_key(key, issuer_name), passphrase)
+    return key, True
+
+
 def _role_for_request(request: Request, required: str, scope: str | None = None) -> str:
     authorization = request.headers.get("authorization")
     compact = extract_bearer(authorization)
@@ -289,6 +323,29 @@ def create_app(
     issuer_id = identity_from_private_key(key).did
     status_url = os.environ.get("SKILLCRED_STATUS_LIST_URL", "https://issuer.example/status-list")
     manager = StatusListManager(resolved_dir, key, issuer_name, status_url)
+    demo_issuer_name = os.environ.get("SKILLCRED_DEMO_ISSUER_NAME", "SkillCred Public Demo")
+    demo_token = os.environ.get("DEMO_ISSUER_TOKEN", "")
+    demo_key: Ed25519PrivateKey | None = None
+    demo_manager: StatusListManager | None = None
+    demo_key_persistent = False
+    demo_enabled = len(demo_token) >= 32 and persistent_key
+    if demo_enabled:
+        demo_key, demo_key_persistent = _load_or_create_demo_signing_key(
+            resolved_dir, demo_issuer_name
+        )
+        if demo_key_persistent:
+            public_base_url = os.environ.get(
+                "RENDER_EXTERNAL_URL", "https://skillcred-pilot-api.onrender.com"
+            ).rstrip("/")
+            demo_status_url = os.environ.get(
+                "DEMO_STATUS_LIST_URL", public_base_url + "/demo/status-list"
+            )
+            demo_manager = StatusListManager(
+                resolved_dir / "demo-status",
+                demo_key,
+                demo_issuer_name,
+                demo_status_url,
+            )
     metrics = MetricsBundle.create()
     impact_store = ImpactStore(resolved_dir / "impact.sqlite3")
     issuer_trust_store = IssuerTrustStore(resolved_dir / "trusted-issuers.json")
@@ -319,6 +376,10 @@ def create_app(
     application.state.impact_store = impact_store
     application.state.issuer_trust_store = issuer_trust_store
     application.state.demo_registry = DemoCredentialRegistry(resolved_dir / "demo-credentials.sqlite3")
+    application.state.demo_issuer_name = demo_issuer_name
+    application.state.demo_issuer_key = demo_key
+    application.state.demo_status_manager = demo_manager
+    application.state.demo_enabled = bool(demo_enabled and demo_key_persistent and demo_manager)
     # The public landing page is hosted on OSGARD; allow only that origin to call
     # the deliberately narrow demo routes. No bearer-token headers are exposed.
     application.add_middleware(
@@ -634,20 +695,33 @@ footer{padding:28px 0 36px;border-top:1px solid var(--line);color:#777e89;font-s
             metrics.operations.labels("revoke", "failure").inc()
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    @application.post("/demo/issue")
-    def demo_issue(request: Request) -> dict[str, Any]:
-        # Opt-in: the server-side secret enables this constrained public demo.
-        # It is never returned to or requested from the browser.
-        demo_secret = os.environ.get("DEMO_ISSUER_TOKEN", "")
-        if len(demo_secret) < 32 or not persistent_key:
+        @application.get("/demo/status-list")
+    def demo_status_list(request: Request) -> dict[str, Any]:
+        demo_manager: StatusListManager | None = request.app.state.demo_status_manager
+        if not request.app.state.demo_enabled or demo_manager is None:
             raise HTTPException(status_code=503, detail="Browser demo is not configured")
         try:
-            status_entry = manager.allocate()
+            return demo_manager.create_credential()
+        except StatusListError as exc:
+            metrics.errors.labels("demo_status_list").inc()
+            raise HTTPException(status_code=500, detail="Could not publish demo status list") from exc
+
+    @application.post("/demo/issue")
+    def demo_issue(request: Request) -> dict[str, Any]:
+        demo_manager: StatusListManager | None = request.app.state.demo_status_manager
+        demo_key: Ed25519PrivateKey | None = request.app.state.demo_issuer_key
+        demo_name: str = request.app.state.demo_issuer_name
+        if not request.app.state.demo_enabled or demo_manager is None or demo_key is None:
+            raise HTTPException(status_code=503, detail="Browser demo is not configured")
+        try:
+            status_entry = demo_manager.allocate()
             credential = create_credential(
-                key,
-                issuer_name=issuer_name,
+                demo_key,
+                issuer_name=demo_name,
                 achievement_name="Practical safety — browser demo",
-                achievement_description="A synthetic SkillCred demonstration credential. Not a real qualification.",
+                achievement_description=(
+                    "Synthetic demonstration credential. Not a real qualification."
+                ),
                 credential_status=status_entry,
             )
             index = int(status_entry["statusListIndex"])
@@ -660,40 +734,52 @@ footer{padding:28px 0 36px;border-top:1px solid var(--line);color:#777e89;font-s
 
     @application.post("/demo/verify")
     def demo_verify(request: Request, payload: VerifyRequest) -> dict[str, Any]:
-        demo_secret = os.environ.get("DEMO_ISSUER_TOKEN", "")
-        if len(demo_secret) < 32:
+        demo_manager: StatusListManager | None = request.app.state.demo_status_manager
+        if not request.app.state.demo_enabled or demo_manager is None:
             raise HTTPException(status_code=503, detail="Browser demo is not configured")
         status = payload.credential.get("credentialStatus")
         try:
             index = int(status["statusListIndex"]) if isinstance(status, dict) else -1
         except (KeyError, TypeError, ValueError):
             index = -1
-        if index < 0 or not request.app.state.demo_registry.matches(index, payload.credential.get("id")):
-            raise HTTPException(status_code=403, detail="Credential was not issued by this demo session")
+        if index < 0 or not request.app.state.demo_registry.matches(
+            index, payload.credential.get("id")
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail="Credential was not issued by the public demo issuer",
+            )
         try:
             result = verify_credential(
                 payload.credential,
-                status_list_credential=manager.create_credential(),
+                status_list_credential=demo_manager.create_credential(),
             )
         except (ValueError, StatusListError) as exc:
             raise HTTPException(status_code=400, detail="Could not verify demo credential") from exc
-        metrics.operations.labels("demo_verify", "success" if result.get("valid") else "invalid").inc()
+        metrics.operations.labels(
+            "demo_verify", "success" if result.get("valid") else "invalid"
+        ).inc()
         return result
 
     @application.post("/demo/revoke")
     def demo_revoke(request: Request, payload: VerifyRequest) -> dict[str, Any]:
-        demo_secret = os.environ.get("DEMO_ISSUER_TOKEN", "")
-        if len(demo_secret) < 32 or not persistent_key:
+        demo_manager: StatusListManager | None = request.app.state.demo_status_manager
+        if not request.app.state.demo_enabled or demo_manager is None:
             raise HTTPException(status_code=503, detail="Browser demo is not configured")
         status = payload.credential.get("credentialStatus")
         try:
             index = int(status["statusListIndex"]) if isinstance(status, dict) else -1
         except (KeyError, TypeError, ValueError):
             index = -1
-        if index < 0 or not request.app.state.demo_registry.matches(index, payload.credential.get("id")):
-            raise HTTPException(status_code=403, detail="Credential was not issued by this demo session")
+        if index < 0 or not request.app.state.demo_registry.matches(
+            index, payload.credential.get("id")
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail="Credential was not issued by the public demo issuer",
+            )
         try:
-            manager.revoke(index)
+            demo_manager.revoke(index)
             metrics.operations.labels("demo_revoke", "success").inc()
             return {"revoked": True, "status_list_index": index}
         except StatusListError as exc:
