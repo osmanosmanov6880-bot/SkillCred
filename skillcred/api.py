@@ -364,46 +364,156 @@ def create_app(
     @application.get("/", response_class=HTMLResponse, include_in_schema=False)
     def homepage() -> HTMLResponse:
         page = """<!doctype html>
-<html lang="en">
+<html lang="ru">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#101522">
-<title>SkillCred — Portable proof of skills</title>
+<meta name="theme-color" content="#090b10">
+<meta name="description" content="SkillCred — открытая инфраструктура цифровых подтверждений практических навыков. Подписывайте, переносите и независимо проверяйте доказательства навыков.">
+<title>SkillCred — доказательства навыков, которым можно доверять</title>
 <style>
-:root{color-scheme:dark;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#101522;color:#edf2ff}
-*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 15% 0%,#1b3151 0,transparent 45%),#101522}
-main{max-width:880px;margin:0 auto;padding:48px 22px 32px}.brand{display:flex;align-items:center;gap:12px;font-size:15px;font-weight:750;letter-spacing:.12em;text-transform:uppercase}
-.mark{display:grid;place-items:center;width:40px;height:40px;border:1px solid #5c85b7;border-radius:12px;color:#b8dcff;font-size:20px}
-.panel{margin-top:38px;padding:clamp(24px,5vw,48px);border:1px solid #2b3a52;border-radius:24px;background:#131c2bee;box-shadow:0 24px 80px #0005}
-.eyebrow{color:#8bc6ff;font-size:12px;font-weight:750;letter-spacing:.16em;text-transform:uppercase}h1{max-width:680px;margin:16px 0;font-size:clamp(36px,6vw,58px);line-height:1.05;letter-spacing:-.04em}
-.lead{max-width:650px;color:#b8c4d9;font-size:18px;line-height:1.7}.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
-.button,.link{display:inline-flex;align-items:center;min-height:44px;padding:11px 15px;border:1px solid #3c5270;border-radius:12px;color:#eaf3ff;text-decoration:none}
-.button.primary{border-color:#9bcfff;background:#b8dcff;color:#102035;font-weight:750}a:focus-visible{outline:3px solid #ffd166;outline-offset:3px}
-section{margin-top:30px}h2{margin-bottom:8px;font-size:18px}p{line-height:1.65}.muted{color:#aab8cc}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:18px}
-.item{padding:16px;border:1px solid #2b3a52;border-radius:14px;background:#151f30}.item strong{display:block;margin-bottom:6px}
-.notice{margin-top:28px;padding:15px 17px;border-left:3px solid #e9bd61;border-radius:8px;background:#282719;color:#eee2bd}footer{padding:22px 4px;color:#8391a8;font-size:13px}
-@media(max-width:520px){main{padding-top:28px}.actions a{width:100%}}
+:root{color-scheme:dark;--bg:#090b10;--panel:#10141c;--panel2:#151a24;--line:#2a303a;--text:#f4f0e8;--muted:#a9adb7;--gold:#d7bd89;--gold2:#f0dfb8;--cyan:#98d9df;--good:#a8d8b2;--max:1180px;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:100px}body{margin:0;background:radial-gradient(ellipse at 80% 0%,#26304166 0,transparent 35%),radial-gradient(ellipse at 5% 22%,#d7bd890b 0,transparent 27%),var(--bg);color:var(--text);line-height:1.6}a{color:inherit}button,a{touch-action:manipulation}a:focus-visible,button:focus-visible{outline:3px solid var(--cyan);outline-offset:4px}button{font:inherit}
+.wrap{width:min(var(--max),calc(100% - 48px));margin-inline:auto}.topline{border-bottom:1px solid #ffffff12;color:#b6b3ac;font-size:11px;letter-spacing:.16em;text-transform:uppercase}.topline .wrap{min-height:36px;display:flex;justify-content:space-between;align-items:center;gap:12px}.online-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 12px #a8d8b280;margin-right:8px}
+header{position:sticky;top:0;z-index:10;background:#090b10e8;backdrop-filter:blur(18px);border-bottom:1px solid #ffffff12}.nav{height:78px;display:flex;align-items:center;justify-content:space-between;gap:24px}.brand{display:flex;align-items:center;gap:12px;text-decoration:none;flex-shrink:0}.brand-mark{width:39px;height:39px;border:1px solid #d7bd8970;border-radius:12px;display:grid;place-items:center;color:var(--gold2);font-family:Georgia,serif;font-size:24px;box-shadow:inset 0 0 20px #d7bd8910}.brand-name{font-size:17px;letter-spacing:.17em;font-weight:760}.brand-sub{display:block;color:#9296a0;font-size:9px;letter-spacing:.17em;text-transform:uppercase;margin-top:-3px}.navlinks{display:flex;align-items:center;gap:24px}.navlinks a{font-size:12px;text-decoration:none;color:#c3c4c8;transition:color .2s}.navlinks a:hover{color:var(--gold2)}.nav-cta,.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;border:1px solid #48433a;border-radius:4px;padding:12px 17px;min-height:46px;font-size:12px;font-weight:700;letter-spacing:.02em;transition:transform .2s,border-color .2s,background .2s}.nav-cta{min-height:40px;padding:9px 14px;color:var(--gold2)}.btn:hover,.nav-cta:hover{transform:translateY(-1px);border-color:var(--gold)}.btn.primary{background:var(--gold);color:#15140f;border-color:var(--gold)}.btn.secondary{background:#ffffff04;color:var(--text)}.btn.text{border-color:transparent;color:#d9d5ca;padding-inline:8px}
+.hero{padding:88px 0 72px;display:grid;grid-template-columns:1.07fr .93fr;gap:64px;align-items:center;min-height:610px}.eyebrow{display:flex;align-items:center;gap:12px;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:750}.eyebrow:before{content:"";width:28px;height:1px;background:var(--gold)}h1,h2,h3,p{margin-top:0}h1{font-size:clamp(42px,5.5vw,73px);font-weight:520;letter-spacing:-.055em;line-height:1.04;margin:24px 0}.h1-accent{font-family:Georgia,"Times New Roman",serif;font-weight:400;font-style:italic;color:var(--gold2)}.hero-copy{max-width:570px;font-size:17px;color:#b8bbc3;line-height:1.85}.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}.microline{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:27px;color:#8d929e;font-size:11px}.microline span+span:before{content:"·";margin-right:12px;color:var(--gold)}
+.art-stage{position:relative;min-height:440px;display:grid;place-items:center;isolation:isolate}.orb{position:absolute;width:340px;height:340px;border:1px solid #d7bd8923;border-radius:50%;box-shadow:0 0 70px #d7bd8908,inset 0 0 70px #d7bd8908}.orb:before,.orb:after{content:"";position:absolute;border:1px solid #d7bd891c;border-radius:50%;inset:25px}.orb:after{inset:52px}.halo{position:absolute;width:410px;height:210px;border:1px solid #98d9df22;transform:rotate(-31deg);border-radius:50%}.credential-card{position:relative;width:min(100%,365px);min-height:354px;padding:28px;background:linear-gradient(140deg,#1d222b,#10141c 66%);border:1px solid #a58d5a72;box-shadow:0 35px 100px #000b,0 0 80px #d7bd8908;transform:rotate(2deg);z-index:1}.credential-card:before{content:"";position:absolute;inset:7px;border:1px solid #d7bd891e;pointer-events:none}.card-top{display:flex;justify-content:space-between;align-items:center;color:var(--gold);font-size:9px;letter-spacing:.18em;text-transform:uppercase}.seal{width:47px;height:47px;border:1px solid #d7bd8980;border-radius:50%;display:grid;place-items:center;color:var(--gold2);font:25px Georgia,serif}.card-rule{height:1px;background:linear-gradient(90deg,var(--gold),transparent);margin:25px 0}.card-kicker{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#969ba5}.card-title{font:31px/1.12 Georgia,"Times New Roman",serif;margin:11px 0 8px;max-width:240px}.card-desc{font-size:11px;line-height:1.6;color:#a9adb7;max-width:260px}.card-bottom{display:flex;align-items:end;justify-content:space-between;margin-top:27px;gap:12px}.fingerprint{font:9px/1.8 ui-monospace,SFMono-Regular,monospace;color:#8f9b9d;word-break:break-all;max-width:190px}.verified{font-size:10px;text-align:right;color:var(--good);white-space:nowrap}.verified b{display:block;font-size:12px;font-weight:650}.floating-tag{position:absolute;z-index:2;display:flex;align-items:center;gap:10px;padding:11px 14px;border:1px solid #333b43;background:#0b0e14eF;box-shadow:0 14px 40px #0008;font-size:10px;color:#d4d5d7;letter-spacing:.04em}.floating-tag .tiny-dot{width:7px;height:7px;border-radius:50%;background:var(--cyan)}.tag-a{right:-4px;top:84px}.tag-b{left:-9px;bottom:73px}.art-caption{position:absolute;bottom:2px;color:#797e89;font-size:9px;letter-spacing:.16em;text-transform:uppercase;text-align:center}
+.strip{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:#ffffff02}.strip .wrap{display:grid;grid-template-columns:repeat(4,1fr)}.metric{padding:24px 16px;border-right:1px solid var(--line)}.metric:first-child{padding-left:0}.metric:last-child{border-right:0}.metric b{display:block;color:var(--gold2);font:22px Georgia,serif;font-weight:400}.metric span{display:block;color:#8e939e;font-size:10px;letter-spacing:.1em;text-transform:uppercase;margin-top:5px}
+.section{padding:94px 0}.section-head{display:grid;grid-template-columns:.7fr 1fr;gap:60px;align-items:end;margin-bottom:40px}.section-index{font:13px Georgia,serif;color:var(--gold);letter-spacing:.12em}.section h2{font-size:clamp(30px,4vw,48px);font-weight:500;letter-spacing:-.045em;line-height:1.12;margin:14px 0 0}.section h2 em{font-family:Georgia,serif;font-weight:400;color:var(--gold2)}.section-intro{max-width:580px;color:#a9adb7;line-height:1.85;font-size:14px;margin:0}.feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.feature{padding:27px 25px 24px;border:1px solid var(--line);background:linear-gradient(145deg,#171b23,#0e1117);min-height:232px}.feature-number{color:var(--gold);font:14px Georgia,serif}.feature h3{font-size:17px;font-weight:600;margin:27px 0 10px}.feature p{color:#a8acb5;font-size:13px;line-height:1.8;margin-bottom:0}.audience-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.audience{padding:22px 20px;border-top:1px solid #786844;background:#11151c}.audience .symbol{font:23px Georgia,serif;color:var(--gold);margin-bottom:26px}.audience h3{font-size:15px;margin-bottom:8px}.audience p{color:#9da2ad;font-size:12px;line-height:1.75;margin:0}
+.band{background:linear-gradient(105deg,#161a20,#11151b);border-block:1px solid var(--line)}.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0}.step{padding:25px 24px;border-left:1px solid var(--line)}.step:first-child{border-left:0;padding-left:0}.step .n{font:13px Georgia,serif;color:var(--gold)}.step h3{font-size:15px;margin:18px 0 8px}.step p{font-size:12px;color:#a5a9b3;line-height:1.8;margin:0}
+.business-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.business-card{padding:25px;border:1px solid var(--line);background:#11151c}.business-card .type{font-size:9px;letter-spacing:.18em;color:var(--gold);text-transform:uppercase}.business-card h3{font-size:18px;font-weight:600;margin:13px 0 8px}.business-card p{font-size:13px;color:#a9adb7;line-height:1.8;margin-bottom:0}.business-note{margin-top:18px;border-left:2px solid var(--gold);padding:12px 15px;background:#d7bd890b;color:#b8b3a7;font-size:12px;line-height:1.8}
+.trust-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}.trust-list{display:grid;gap:0}.trust-row{padding:18px 0;border-bottom:1px solid var(--line);display:grid;grid-template-columns:27px 1fr;gap:12px}.trust-row .tick{color:var(--cyan);font-size:15px}.trust-row strong{display:block;font-size:13px;font-weight:600;margin-bottom:4px}.trust-row span{font-size:12px;color:#a1a6b0;line-height:1.75}.pilot-box{padding:27px;border:1px solid #6b5b3c;background:linear-gradient(145deg,#171811,#11151a)}.pilot-box h3{font:26px Georgia,serif;color:var(--gold2);margin:15px 0 10px}.pilot-box p{font-size:13px;color:#b4b4ad;line-height:1.8}.status-panel{margin-top:18px;border:1px solid var(--line);background:#0a0d12;padding:18px}.status-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.status-head strong{font-size:12px}.status-label{color:#89919a;font-size:10px}.status-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px}.check-button{background:#d7bd89;color:#15140f;border:0;border-radius:3px;padding:10px 13px;font-weight:750;font-size:11px;cursor:pointer}.check-button:disabled{opacity:.65;cursor:wait}.status-result{font-size:11px;color:#aab0b8;line-height:1.8;margin:12px 0 0;white-space:pre-line}.status-result.ok{color:var(--good)}.status-result.fail{color:#f2a7a7}
+.final-cta{padding:75px 0;background:radial-gradient(ellipse at 70% 40%,#d7bd8910,transparent 38%),#0e1117;border-top:1px solid var(--line)}.cta-inner{display:flex;align-items:center;justify-content:space-between;gap:36px}.cta-inner h2{font:clamp(30px,4vw,45px)/1.15 Georgia,serif;font-weight:400;margin:12px 0}.cta-inner p{font-size:13px;color:#9fa4ae;max-width:580px;margin:0}.cta-actions{display:flex;gap:10px;flex-wrap:wrap;flex-shrink:0}
+footer{padding:28px 0 36px;border-top:1px solid var(--line);color:#777e89;font-size:11px}.footer-inner{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}.footer-links{display:flex;gap:18px;flex-wrap:wrap}.footer-links a{color:#a4a8b0;text-decoration:none}.footer-links a:hover{color:var(--gold2)}.disclaimer{max-width:750px;color:#858b95;font-size:10px;line-height:1.8;margin-top:18px}
+@media(max-width:900px){.navlinks{gap:13px}.navlinks a{font-size:11px}.hero{gap:26px;padding-top:60px}.art-stage{min-height:390px}.orb{width:290px;height:290px}.halo{width:330px}.tag-a{right:-1px}.tag-b{left:-1px}.audience-grid{grid-template-columns:repeat(2,1fr)}.steps{grid-template-columns:repeat(2,1fr);row-gap:25px}.step:nth-child(3){border-left:0;padding-left:0}}
+@media(max-width:680px){.wrap{width:min(var(--max),calc(100% - 32px))}.topline .wrap{font-size:9px}.topline .right-note{display:none}.nav{height:68px}.navlinks{display:none}.brand-name{font-size:15px}.nav-cta{font-size:10px}.hero{grid-template-columns:1fr;padding:61px 0 42px;gap:20px;min-height:auto}.hero-copy{font-size:15px}.hero h1{font-size:48px}.art-stage{min-height:375px;margin-top:0}.credential-card{width:min(88%,340px);min-height:335px;padding:24px}.orb{width:270px;height:270px}.tag-a{top:44px;right:0}.tag-b{bottom:49px;left:0}.art-caption{font-size:8px}.strip .wrap{grid-template-columns:repeat(2,1fr)}.metric{padding:18px 12px;border-bottom:1px solid var(--line)}.metric:nth-child(2){border-right:0}.metric:nth-child(3){padding-left:0;border-bottom:0}.metric:nth-child(4){border-right:0;border-bottom:0}.section{padding:64px 0}.section-head{grid-template-columns:1fr;gap:18px;margin-bottom:26px}.section h2{font-size:35px}.feature-grid{grid-template-columns:1fr}.feature{min-height:auto;padding:22px}.feature h3{margin-top:18px}.audience-grid{grid-template-columns:1fr 1fr;gap:9px}.audience{padding:17px 14px}.audience .symbol{margin-bottom:17px}.steps{grid-template-columns:1fr;row-gap:0}.step,.step:first-child,.step:nth-child(3){padding:18px 0 18px 18px;border-left:1px solid var(--line)}.step:first-child{padding-top:0}.business-grid,.trust-grid{grid-template-columns:1fr;gap:15px}.cta-inner{display:block}.cta-actions{margin-top:23px}.cta-actions .btn{flex:1}.final-cta{padding:56px 0}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important;animation:none!important}}
 </style>
 </head>
-<body><main>
-<div class="brand"><span class="mark" aria-hidden="true">S</span><span>SkillCred</span></div>
-<div class="panel">
-<div class="eyebrow">Open source · Experimental pilot · API v0.3.0</div>
-<h1>Portable proof of practical skills.</h1>
-<p class="lead">SkillCred is an open pilot API for issuing, verifying, exporting and revoking cryptographically signed skill credentials. Credentials can be checked independently without a mandatory central database of learners.</p>
-<div class="actions"><a class="button primary" href="/health">Check service health ↗</a><a class="button" href="/ready">Check readiness ↗</a><a class="button" href="https://github.com/osmanosmanov6880-bot/SkillCred" rel="noopener noreferrer">Source on GitHub ↗</a></div>
-<section><h2>What this service provides</h2><div class="grid">
-<div class="item"><strong>Issue</strong><span class="muted">Create a signed credential for an assessed skill.</span></div>
-<div class="item"><strong>Verify</strong><span class="muted">Check credential integrity and issuer signature.</span></div>
-<div class="item"><strong>Revoke</strong><span class="muted">Publish status so verifiers can reject a revoked credential.</span></div>
-</div></section>
-<section><h2>Developer access</h2><p class="muted">Protected operations require a role-authorized Bearer token. Interactive API docs are disabled on this deployment. This page is informational; it does not issue credentials or accept learner data.</p></section>
-<div class="notice"><strong>Pilot notice:</strong> This is an experimental service, not a certified 1EdTech implementation or a full learner portal. Do not submit sensitive personal data or rely on it for high-impact decisions.</div>
+<body>
+<div class="topline"><div class="wrap"><span><i class="online-dot" aria-hidden="true"></i>Открытая инфраструктура доверия</span><span class="right-note">Пилотная версия 0.3.0 · Apache-2.0</span></div></div>
+<header><div class="wrap nav">
+<a class="brand" href="/" aria-label="SkillCred — на главную"><span class="brand-mark" aria-hidden="true">S</span><span><span class="brand-name">SKILLCRED</span><span class="brand-sub">Proof of practical skill</span></span></a>
+<nav class="navlinks" aria-label="Главная навигация"><a href="#how">Как работает</a><a href="#who">Кому полезно</a><a href="#business">Модель бизнеса</a><a href="#trust">Безопасность</a></nav>
+<a class="nav-cta" href="https://github.com/osmanosmanov6880-bot/SkillCred" target="_blank" rel="noopener noreferrer">Изучить исходный код ↗</a>
+</div></header>
+<main>
+<section class="wrap hero" aria-labelledby="hero-title">
+<div>
+<div class="eyebrow">Навыки, которые можно подтвердить</div>
+<h1 id="hero-title">Не просто сертификат.<br><span class="h1-accent">Доказательство навыка.</span></h1>
+<p class="hero-copy">SkillCred помогает организациям выдавать цифровые подтверждения практических навыков, которые можно переносить между платформами и независимо проверять — без обязательного единого хранилища профилей учащихся.</p>
+<div class="actions"><a class="btn primary" href="#how">Узнать, как это работает <span aria-hidden="true">↘</span></a><a class="btn secondary" href="mailto:osman.osmanov6880@gmail.com?subject=SkillCred%20%E2%80%94%20%D0%BE%D0%B1%D1%81%D1%83%D0%B6%D0%B4%D0%B5%D0%BD%D0%B8%D0%B5%20%D0%BF%D0%B8%D0%BB%D0%BE%D1%82%D0%B0">Обсудить пилот <span aria-hidden="true">↗</span></a></div>
+<div class="microline"><span>Открытый исходный код</span><span>Криптографическая подпись</span><span>Контроль у держателя</span></div>
 </div>
-<footer>SkillCred 0.3.0 · Apache-2.0 · <a class="link" href="https://github.com/osmanosmanov6880-bot/SkillCred">Source code and validation notes</a></footer>
-</main></body></html>"""
+<div class="art-stage" aria-label="Иллюстрация переносимого цифрового подтверждения навыка">
+<div class="orb" aria-hidden="true"></div><div class="halo" aria-hidden="true"></div>
+<div class="credential-card">
+<div class="card-top"><span>SkillCred · Credential</span><span class="seal" aria-hidden="true">S</span></div>
+<div class="card-rule"></div>
+<div class="card-kicker">Практический навык · Демонстрационный макет</div>
+<div class="card-title">Безопасная работа</div>
+<p class="card-desc">Подтверждение результата оценки, подписанное выдавшей организацией.</p>
+<div class="card-rule"></div>
+<div class="card-bottom"><div class="fingerprint">ISSUER<br>did:key:…публичный идентификатор</div><div class="verified">◇<b>Подпись</b>проверяема</div></div>
+</div>
+<div class="floating-tag tag-a"><span class="tiny-dot"></span>Подпись издателя</div>
+<div class="floating-tag tag-b"><span class="tiny-dot"></span>Можно перенести</div>
+<div class="art-caption">Визуальный пример · Не реальный сертификат</div>
+</div>
+</section>
+<div class="strip"><div class="wrap">
+<div class="metric"><b>Выдать</b><span>Подписать результат оценки</span></div>
+<div class="metric"><b>Передать</b><span>Хранить у владельца</span></div>
+<div class="metric"><b>Проверить</b><span>Проверить целостность</span></div>
+<div class="metric"><b>Отозвать</b><span>Обновить статус доверия</span></div>
+</div></div>
+<section class="section wrap" id="how">
+<div class="section-head"><div><div class="section-index">01 / Принцип работы</div><h2>От оценки навыка<br>к <em>проверяемому факту.</em></h2></div><p class="section-intro">SkillCred — не школа и не каталог курсов. Это технологический слой между теми, кто оценивает навык, теми, кто его получил, и теми, кому нужно проверить подтверждение.</p></div>
+<div class="feature-grid">
+<article class="feature"><span class="feature-number">01 — ОЦЕНКА</span><h3>Организация подтверждает навык</h3><p>Например, учебный центр проверяет практическую работу по технике безопасности. Само решение о компетенции принимает организация, а не программа SkillCred.</p></article>
+<article class="feature"><span class="feature-number">02 — ПОДПИСЬ</span><h3>SkillCred создаёт цифровую запись</h3><p>Запись подписывается ключом издателя. Изменение содержимого можно обнаружить при проверке подписи. Владелец может хранить и передавать файл самостоятельно.</p></article>
+<article class="feature"><span class="feature-number">03 — ПРОВЕРКА</span><h3>Работодатель проверяет подлинность</h3><p>Проверяющая сторона может проверить подпись и статус отзыва. Подпись подтверждает целостность документа, но сама по себе не доказывает репутацию или законность издателя.</p></article>
+</div>
+</section>
+<section class="section band" id="who"><div class="wrap">
+<div class="section-head"><div><div class="section-index">02 / Для кого</div><h2>Когда важно не название курса,<br>а <em>что человек умеет.</em></h2></div><p class="section-intro">Лучший первый сценарий — узкий и понятный: организация оценивает конкретный практический навык, выдаёт подтверждение, а другая сторона проверяет его без долгой ручной переписки.</p></div>
+<div class="audience-grid">
+<article class="audience"><div class="symbol" aria-hidden="true">01</div><h3>Учебные центры и вузы</h3><p>Выдавайте переносимые подтверждения практических результатов выпускникам и участникам программ.</p></article>
+<article class="audience"><div class="symbol" aria-hidden="true">02</div><h3>Работодатели и HR</h3><p>Проверяйте подпись и статус полученного подтверждения вместо доверия только к картинке или PDF.</p></article>
+<article class="audience"><div class="symbol" aria-hidden="true">03</div><h3>Онлайн-школы и платформы</h3><p>Добавляйте подтверждения навыков к своему обучающему продукту через API и собственные процессы оценки.</p></article>
+<article class="audience"><div class="symbol" aria-hidden="true">04</div><h3>НКО и профессиональные сообщества</h3><p>Документируйте завершённые программы, волонтёрскую подготовку или отраслевые проверки навыков.</p></article>
+</div>
+</div></section>
+<section class="section wrap" id="flow">
+<div class="section-head"><div><div class="section-index">03 / Путь подтверждения</div><h2>Четыре шага.<br><em>Без лишней магии.</em></h2></div><p class="section-intro">Технология защищает проверяемость записи. Она не заменяет качественную оценку, правила выдачи или договорённость о том, какие организации считаются надёжными.</p></div>
+<div class="steps">
+<article class="step"><div class="n">ШАГ 01</div><h3>Оценить</h3><p>Проверить навык по известным критериям и зафиксировать решение.</p></article>
+<article class="step"><div class="n">ШАГ 02</div><h3>Выдать</h3><p>Уполномоченный издатель создаёт подписанное цифровое подтверждение.</p></article>
+<article class="step"><div class="n">ШАГ 03</div><h3>Передать</h3><p>Владелец сохраняет файл у себя и передаёт его тому, кому сам решит.</p></article>
+<article class="step"><div class="n">ШАГ 04</div><h3>Проверить статус</h3><p>Проверяющий проверяет подпись и актуальный статус, включая отзыв.</p></article>
+</div>
+</section>
+<section class="section band" id="business"><div class="wrap">
+<div class="section-head"><div><div class="section-index">04 / Устойчивая модель</div><h2>Открытый код.<br><em>Платная ценность вокруг него.</em></h2></div><p class="section-intro">Монетизировать стоит не сам факт существования открытого стандарта, а удобство внедрения, надёжность эксплуатации, сопровождение и интеграции. Это направления бизнес-модели, а не уже работающие тарифы.</p></div>
+<div class="business-grid">
+<article class="business-card"><div class="type">Модель 01 · Внедрение</div><h3>Платная установка и настройка</h3><p>Развернуть SkillCred в инфраструктуре клиента, настроить издателя, ключи, резервное копирование, доступы и процесс отзыва.</p></article>
+<article class="business-card"><div class="type">Модель 02 · Подписка</div><h3>Размещённый сервис для организаций</h3><p>В перспективе — платный управляемый кабинет: управление командами и издателями, журналы аудита, резервирование и обслуживание.</p></article>
+<article class="business-card"><div class="type">Модель 03 · Интеграция</div><h3>Подключение к системам клиента</h3><p>Интеграция API с LMS, HR-системами, порталами выпускников и внутренними процессами проверки навыков.</p></article>
+<article class="business-card"><div class="type">Модель 04 · Сопровождение</div><h3>Поддержка и SLA</h3><p>Обновления, мониторинг, обучение команды, политика ключей и помощь с миграцией. Отдельные условия — для больших организаций.</p></article>
+</div>
+<div class="business-note"><strong>Что реалистично продавать первым:</strong> ограниченный платный пилот внедрения с фиксированным объёмом работ. Не продавать пока «международно признанный сертификат» или «официальную сертификацию»: совместимость и сертификация ещё должны быть доказаны.</div>
+</div></section>
+<section class="section wrap" id="trust">
+<div class="section-head"><div><div class="section-index">05 / Доверие и прозрачность</div><h2>Не просим верить на слово.<br><em>Показываем границы.</em></h2></div><p class="section-intro">SkillCred — экспериментальный пилот для проверки технической и бизнес-гипотезы. Открытый код и успешный тест — полезные признаки, но не эквивалент независимого аудита или официального одобрения стандарта.</p></div>
+<div class="trust-grid"><div class="trust-list">
+<div class="trust-row"><div class="tick" aria-hidden="true">✓</div><div><strong>Подпись Ed25519</strong><span>Позволяет проверить, что документ соответствует подписанному содержимому и связан с публичным ключом издателя.</span></div></div>
+<div class="trust-row"><div class="tick" aria-hidden="true">✓</div><div><strong>Нет обязательной базы всех учащихся</strong><span>Файлы подтверждений можно хранить у владельца. Статус отзыва публикуется отдельно.</span></div></div>
+<div class="trust-row"><div class="tick" aria-hidden="true">✓</div><div><strong>Защищённые операции — только с авторизацией</strong><span>Выдача и отзыв через API требуют роль и соответствующие полномочия. Главная страница не просит секретные токены.</span></div></div>
+<div class="trust-row"><div class="tick" aria-hidden="true">!</div><div><strong>Ограничения указаны открыто</strong><span>Нет заявления об официальной сертификации 1EdTech; совместимость с независимыми кошельками нужно подтвердить.</span></div></div>
+</div>
+<aside class="pilot-box"><div class="eyebrow">Проверка вживую</div><h3>Сервис доступен?</h3><p>Нажмите кнопку — страница сама проверит публичные маршруты состояния. Проверка не выдаёт сертификаты и не передаёт данные учащихся.</p>
+<div class="status-panel"><div class="status-head"><strong>SkillCred API</strong><span class="status-label">Публичная проверка</span></div><div class="status-actions"><button id="checkHealth" class="check-button" type="button">Проверить сервис ↗</button><a class="status-label" href="/health">Открыть JSON</a></div><p id="healthResult" class="status-result" role="status" aria-live="polite">Проверка ещё не запускалась.</p></div>
+<p style="margin-top:17px;font-size:11px">Технические детали и история изменений доступны в открытом репозитории.</p><a class="btn secondary" href="https://github.com/osmanosmanov6880-bot/SkillCred" target="_blank" rel="noopener noreferrer">Код, тесты и ограничения ↗</a></aside>
+</div>
+</section>
+<section class="final-cta"><div class="wrap cta-inner"><div><div class="eyebrow">Следующий шаг</div><h2>Найти один реальный сценарий<br>и доказать его пользу.</h2><p>Ищем учебный центр, работодателя или профессиональное сообщество для небольшого пилота: один навык, один издатель, независимая проверка, измеримые результаты.</p></div><div class="cta-actions"><a class="btn primary" href="mailto:osman.osmanov6880@gmail.com?subject=SkillCred%20%E2%80%94%20%D0%BF%D0%B8%D0%BB%D0%BE%D1%82&body=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D1%81%D1%82%D0%B2%D1%83%D0%B9%D1%82%D0%B5!%20%D0%A5%D0%BE%D1%87%D1%83%20%D0%BE%D0%B1%D1%81%D1%83%D0%B4%D0%B8%D1%82%D1%8C%20%D0%BF%D0%B8%D0%BB%D0%BE%D1%82%20SkillCred.">Обсудить пилот ↗</a><a class="btn secondary" href="https://github.com/osmanosmanov6880-bot/SkillCred" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div></div></section>
+</main>
+<footer><div class="wrap"><div class="footer-inner"><a class="brand" href="/" aria-label="SkillCred — на главную"><span class="brand-mark" aria-hidden="true">S</span><span><span class="brand-name">SKILLCRED</span><span class="brand-sub">Open infrastructure</span></span></a><div class="footer-links"><a href="#how">Как работает</a><a href="#business">Бизнес-модель</a><a href="/health">Состояние API</a><a href="https://github.com/osmanosmanov6880-bot/SkillCred" target="_blank" rel="noopener noreferrer">GitHub</a></div></div><p class="disclaimer">SkillCred 0.3.0 · Apache-2.0 · Экспериментальный пилот. Не является сертифицированной реализацией 1EdTech Open Badges 3.0. Криптографическая подпись не подтверждает сама по себе законность издателя или достаточность оценки навыка. Не отправляйте конфиденциальные персональные данные и не полагайтесь на сервис для решений с существенными последствиями.</p></div></footer>
+<script>
+(function(){
+  var button=document.getElementById("checkHealth");
+  var result=document.getElementById("healthResult");
+  if(!button||!result){return;}
+  button.addEventListener("click",async function(){
+    button.disabled=true;
+    button.textContent="Проверяем…";
+    result.className="status-result";
+    result.textContent="Запрашиваем /health и /ready. Это может занять несколько секунд.";
+    try{
+      var paths=["/health","/ready"];
+      var checks=await Promise.all(paths.map(async function(path){
+        var response=await fetch(path,{method:"GET",cache:"no-store",headers:{"Accept":"application/json"}});
+        var body=await response.json().catch(function(){return {};});
+        return {path:path,ok:response.ok,status:response.status,body:body};
+      }));
+      var allOk=checks.every(function(item){return item.ok;});
+      result.className="status-result "+(allOk?"ok":"fail");
+      result.textContent=checks.map(function(item){
+        return (item.ok?"✓ ":"✕ ")+item.path+" — HTTP "+item.status+(item.body.service?" · "+item.body.service+" v"+item.body.version:"");
+      }).join("\n")+(allOk?"\nСервис отвечает. Это проверка доступности, не полная сертификация.":"\nОдин или несколько маршрутов не прошли проверку. Смотрите статус сервиса и журналы запуска.");
+    }catch(error){
+      result.className="status-result fail";
+      result.textContent="Не удалось связаться с API. Проверьте соединение и повторите попытку. Техническая ошибка: "+(error&&error.message?error.message:"network error");
+    }finally{
+      button.disabled=false;
+      button.textContent="Проверить ещё раз ↗";
+    }
+  });
+})();
+</script>
+</body>
+</html>"""
         if docs_enabled:
             page = page.replace(
                 "Interactive API docs are disabled on this deployment.",
