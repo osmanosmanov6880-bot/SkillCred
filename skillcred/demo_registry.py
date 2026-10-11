@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sqlite3
 import time
+from contextlib import closing
 from pathlib import Path
 
 
@@ -26,7 +27,7 @@ class DemoCredentialRegistry:
         self.database_path.parent.mkdir(parents=True, exist_ok=True)
         self.ttl_seconds = max(60, int(ttl_seconds))
         self.max_records = max(100, int(max_records))
-        with self._connect() as connection:
+        with closing(self._connect()) as connection:
             connection.execute(
                 """
                 CREATE TABLE IF NOT EXISTS demo_credentials (
@@ -52,7 +53,7 @@ class DemoCredentialRegistry:
         if status_list_index < 0 or not isinstance(credential_id, str) or not credential_id:
             raise ValueError("invalid demo credential reference")
         now = int(time.time())
-        with self._connect() as connection:
+        with closing(self._connect()) as connection:
             connection.execute("BEGIN IMMEDIATE")
             connection.execute(
                 "DELETE FROM demo_credentials WHERE created_at < ?",
@@ -85,7 +86,7 @@ class DemoCredentialRegistry:
         if status_list_index < 0 or not isinstance(credential_id, str):
             return False
         cutoff = int(time.time()) - self.ttl_seconds
-        with self._connect() as connection:
+        with closing(self._connect()) as connection:
             row = connection.execute(
                 """
                 SELECT 1 FROM demo_credentials
