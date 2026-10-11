@@ -38,7 +38,6 @@ let keyPair=null;
 let revokedIds=new Set();
 const encoder=new TextEncoder();
 const alphabet="123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-function bytesToB64Url(bytes){return btoa(String.fromCharCode(...bytes)).replace(/=/g,"").replace(/\\+/g,"-").replace(/\\//g,"_")}
 function b58encode(bytes){
  let zeros=0;while(zeros<bytes.length&&bytes[zeros]===0)zeros++;
  let digits=[0];
@@ -48,10 +47,11 @@ function b58encode(bytes){
  return out;
 }
 function b58decode(s){
- let digits=[0];for(const ch of s){const val=alphabet.indexOf(ch);if(val<0)throw new Error("Некорректный base58");let carry=val;for(let j=0;j<digits.length;j++){carry+=digits[j]*58;digits[j]=carry&255;carry>>=8}while(carry){digits.push(carry&255);carry>>=8}}
  let zeros=0;while(zeros<s.length&&s[zeros]==="1")zeros++;
- const out=new Uint8Array(zeros+digits.length);for(let i=0;i<digits.length;i++)out[out.length-1-i]=digits[i];
- return out;
+ let value=0n;
+ for(let i=zeros;i<s.length;i++){const digit=alphabet.indexOf(s[i]);if(digit<0)throw new Error("Некорректный base58");value=value*58n+BigInt(digit)}
+ const bytes=[];while(value>0n){bytes.push(Number(value&255n));value>>=8n}bytes.reverse();
+ return new Uint8Array([...new Array(zeros).fill(0),...bytes]);
 }
 function concat(a,b){const out=new Uint8Array(a.length+b.length);out.set(a);out.set(b,a.length);return out}
 function jcs(v){
@@ -62,7 +62,7 @@ function jcs(v){
 }
 async function digest(v){return new Uint8Array(await crypto.subtle.digest("SHA-256",encoder.encode(jcs(v))))}
 function now(){return new Date().toISOString().replace(/\\.\\d{3}Z$/,"Z")}
-function proofOptions(document,verificationMethod){return {"@context":JSON.parse(JSON.stringify(document["@context"])),"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":now(),"verificationMethod,"proofPurpose":"assertionMethod"}}
+function proofOptions(document,verificationMethod){return {"@context":JSON.parse(JSON.stringify(document["@context"])),"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":now(),"verificationMethod":verificationMethod,"proofPurpose":"assertionMethod"}}
 async function signDocument(document,privateKey,verificationMethod){
  const cfg=proofOptions(document,verificationMethod);
  const input=concat(await digest(cfg),await digest(document));
@@ -117,6 +117,6 @@ $("copyCode").addEventListener("click",async()=>{
 });
 $("liveStatus").textContent="Статическая версия · браузерная криптодемонстрация";
 })();
-</script>>
+</script>
 </body>
 </html>
