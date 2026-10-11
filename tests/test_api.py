@@ -119,7 +119,7 @@ def test_ephemeral_import_style_app_does_not_publish_a_status_list(tmp_path, mon
     assert client.get("/ready").status_code == 503
     assert client.get("/status-list").status_code == 503
 
-def test_public_homepage_returns_html_and_discloses_pilot_status(
+def test_public_homepage_returns_russian_product_page_and_pilot_limits(
     tmp_path, monkeypatch
 ) -> None:
     monkeypatch.delenv("SKILLCRED_ENABLE_API_DOCS", raising=False)
@@ -129,11 +129,16 @@ def test_public_homepage_returns_html_and_discloses_pilot_status(
 
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
-    assert "Portable proof of practical skills." in response.text
+    assert "lang=\"ru\"" in response.text
+    assert "Доказательство навыка." in response.text
+    assert "Как это работает" in response.text
+    assert "Модель бизнеса" in response.text
+    assert 'id="checkHealth"' in response.text
     assert 'href="/health"' in response.text
     assert 'href="/ready"' in response.text
-    assert "experimental service" in response.text
-    assert "Interactive API docs are disabled on this deployment." in response.text
+    assert "Экспериментальный пилот" in response.text
+    assert "<!-- API_DOCS_LINK -->" not in response.text
+    assert 'href="/docs"' not in response.text
 
 
 def test_public_homepage_links_to_docs_when_enabled(tmp_path, monkeypatch) -> None:
@@ -144,4 +149,5 @@ def test_public_homepage_links_to_docs_when_enabled(tmp_path, monkeypatch) -> No
 
     assert response.status_code == 200
     assert 'href="/docs"' in response.text
-    assert "Open interactive API documentation" in response.text
+    assert "Документация API" in response.text
+    assert "<!-- API_DOCS_LINK -->" not in response.text
