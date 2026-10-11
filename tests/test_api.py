@@ -151,3 +151,68 @@ def test_public_homepage_links_to_docs_when_enabled(tmp_path, monkeypatch) -> No
     assert 'href="/docs"' in response.text
     assert "Документация API" in response.text
     assert "<!-- API_DOCS_LINK -->" not in response.text
+
+
+
+def test_public_demo_round_trip_persists_across_app_restart(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("SKILLCRED_KEY_PASSPHRASE", "test-encrypted-wallet-passphrase")
+    monkeypatch.setenv("SKILLCRED_CLIENT_STORE_PASSPHRASE", "test-client-store-passphrase")
+    monkeypatch.setenv("DEMO_ISSUER_TOKEN", "demo-enablement-secret-" + "d" * 40)
+    first = TestClient(create_app(tmp_path))
+    assert first.get("/ready").status_code == 200
+
+    issued = first.post("/demo/issue")
+    assert issued.status_code == 200, issued.text
+    credential = issued.json()
+    assert credential["proof"]["cryptosuite"] == "eddsa-jcs-2022"
+    assert credential["credentialSubject"]["achievement"]["name"] == (
+        "Practical safety — browser demo"
+    )
+
+    active = first.post("/demo/verify", json={"credential": credential})
+    assert active.status_code == 200, active.text
+    assert active.json()["signature_valid"] is True
+    assert active.json()["valid"] is True
+    assert active.json()["status"] == "active"
+
+    # Recreate the ASGI app with the same persistent storage: the demo allowlist
+    # and the signed status list must survive an application restart.
+    second = TestClient(create_app(tmp_path))
+    still_active = second.post("/demo/verify", json={"credential": credential})
+    assert still_active.status_code == 200, still_active.text
+    assert still_active.json()["valid"] is True
+
+    revoked = second.post("/demo/revoke", json={"credential": credential})
+    assert revoked.status_code == 200, revoked.text
+    assert revoked.json()["revoked"] is True
+
+    checked_again = second.post("/demo/verify", json={"credential": credential})
+    assert checked_again.status_code == 200, checked_again.text
+    result = checked_again.json()
+    assert result["signature_valid"] is True
+    assert result["valid"] is False
+    assert result["status"] == "revoked"
+
+
+def test_demo_api_allows_only_declared_browser_origin_cors(tmp_path) -> None:
+    client = TestClient(create_app(tmp_path, allow_ephemeral=True))
+    allowed = client.options(
+        "/demo/issue",
+        headers={
+            "Origin": "https://osgard.world",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "content-type",
+        },
+    )
+    assert allowed.status_code == 200
+    assert allowed.headers["access-control-allow-origin"] == "https://osgard.world"
+
+    denied = client.options(
+        "/demo/issue",
+        headers={
+            "Origin": "https://example.org",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "content-type",
+        },
+    )
+    assert denied.headers.get("access-control-allow-origin") != "https://example.org"
