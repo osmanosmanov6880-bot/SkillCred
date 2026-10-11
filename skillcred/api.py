@@ -316,6 +316,7 @@ def create_app(
     application.state.client_registry = client_registry
     application.state.impact_store = impact_store
     application.state.issuer_trust_store = issuer_trust_store
+    application.state.demo_credentials = {}
     application.add_middleware(
         RateLimitMiddleware, limit=rate_limit, window_seconds=rate_window_seconds
     )
@@ -615,6 +616,77 @@ footer{padding:28px 0 36px;border-top:1px solid var(--line);color:#777e89;font-s
         except StatusListError as exc:
             metrics.operations.labels("revoke", "failure").inc()
             raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @application.post("/demo/issue")
+    def demo_issue(request: Request) -> dict[str, Any]:
+        # Opt-in: the server-side secret enables this constrained public demo.
+        # It is never returned to or requested from the browser.
+        demo_secret = os.environ.get("DEMO_ISSUER_TOKEN", "")
+        if len(demo_secret) < 32 or not persistent_key:
+            raise HTTPException(status_code=503, detail="Browser demo is not configured")
+        try:
+            status_entry = manager.allocate()
+            credential = create_credential(
+                key,
+                issuer_name=issuer_name,
+                achievement_name="Practical safety — browser demo",
+                achievement_description="A synthetic SkillCred demonstration credential. Not a real qualification.",
+                credential_status=status_entry,
+            )
+            index = int(status_entry["statusListIndex"])
+            request.app.state.demo_credentials[index] = credential.get("id")
+            # Keep the in-memory registry bounded; demo credentials are synthetic.
+            if len(request.app.state.demo_credentials) > 100:
+                oldest = sorted(request.app.state.demo_credentials)[:-80]
+                for old_index in oldest:
+                    request.app.state.demo_credentials.pop(old_index, None)
+            metrics.operations.labels("demo_issue", "success").inc()
+            return credential
+        except (ValueError, StatusListError) as exc:
+            metrics.operations.labels("demo_issue", "failure").inc()
+            raise HTTPException(status_code=400, detail="Could not create demo credential") from exc
+
+    @application.post("/demo/verify")
+    def demo_verify(request: Request, payload: VerifyRequest) -> dict[str, Any]:
+        demo_secret = os.environ.get("DEMO_ISSUER_TOKEN", "")
+        if len(demo_secret) < 32:
+            raise HTTPException(status_code=503, detail="Browser demo is not configured")
+        status = payload.credential.get("credentialStatus")
+        try:
+            index = int(status["statusListIndex"]) if isinstance(status, dict) else -1
+        except (KeyError, TypeError, ValueError):
+            index = -1
+        if index < 0 or request.app.state.demo_credentials.get(index) != payload.credential.get("id"):
+            raise HTTPException(status_code=403, detail="Credential was not issued by this demo session")
+        try:
+            result = verify_credential(
+                payload.credential,
+                status_list_credential=manager.create_credential(),
+            )
+        except (ValueError, StatusListError) as exc:
+            raise HTTPException(status_code=400, detail="Could not verify demo credential") from exc
+        metrics.operations.labels("demo_verify", "success" if result.get("valid") else "invalid").inc()
+        return result
+
+    @application.post("/demo/revoke")
+    def demo_revoke(request: Request, payload: VerifyRequest) -> dict[str, Any]:
+        demo_secret = os.environ.get("DEMO_ISSUER_TOKEN", "")
+        if len(demo_secret) < 32 or not persistent_key:
+            raise HTTPException(status_code=503, detail="Browser demo is not configured")
+        status = payload.credential.get("credentialStatus")
+        try:
+            index = int(status["statusListIndex"]) if isinstance(status, dict) else -1
+        except (KeyError, TypeError, ValueError):
+            index = -1
+        if index < 0 or request.app.state.demo_credentials.get(index) != payload.credential.get("id"):
+            raise HTTPException(status_code=403, detail="Credential was not issued by this demo session")
+        try:
+            manager.revoke(index)
+            metrics.operations.labels("demo_revoke", "success").inc()
+            return {"revoked": True, "status_list_index": index}
+        except StatusListError as exc:
+            metrics.operations.labels("demo_revoke", "failure").inc()
+            raise HTTPException(status_code=400, detail="Could not revoke demo credential") from exc
 
     @application.post("/admin/clients", status_code=201)
     def create_client(request: Request, payload: ClientCreateRequest) -> dict[str, Any]:
