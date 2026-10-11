@@ -15,6 +15,8 @@ services:
         value: SkillCred Pilot Issuer
       - key: SKILLCRED_LANG
         value: en
+      - key: SKILLCRED_ENABLE_API_DOCS
+        value: "true"
       - key: SKILLCRED_RATE_LIMIT
         value: "60"
       - key: SKILLCRED_RATE_WINDOW_SECONDS
