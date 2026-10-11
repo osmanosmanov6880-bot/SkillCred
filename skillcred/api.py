@@ -612,6 +612,7 @@ footer{padding:28px 0 36px;border-top:1px solid var(--line);color:#777e89;font-s
             "service": "skillcred",
             "version": "0.3.0",
             "signing_ready": persistent_key,
+            "demo_ready": bool(demo_enabled and demo_key_persistent and demo_manager is not None),
         }
 
     @application.get("/ready", include_in_schema=False)
