@@ -21,6 +21,7 @@ from starlette.responses import JSONResponse
 from skillcred.auth import TokenConfig, extract_bearer, load_token_config, require_role
 from skillcred.badge import create_credential
 from skillcred.client_registry import ClientRegistry, ClientRegistryError, TokenRejected
+from skillcred.demo_registry import DemoCredentialRegistry
 from skillcred.federation import FederationError, IssuerTrustStore, create_issuer_metadata
 from skillcred.i18n import language_from_accept_header, translate
 from skillcred.impact import ImpactRecordRequest, ImpactStore
@@ -317,7 +318,7 @@ def create_app(
     application.state.client_registry = client_registry
     application.state.impact_store = impact_store
     application.state.issuer_trust_store = issuer_trust_store
-    application.state.demo_credentials = {}
+    application.state.demo_registry = DemoCredentialRegistry(resolved_dir / "demo-credentials.sqlite3")
     # The public landing page is hosted on OSGARD; allow only that origin to call
     # the deliberately narrow demo routes. No bearer-token headers are exposed.
     application.add_middleware(
@@ -650,12 +651,7 @@ footer{padding:28px 0 36px;border-top:1px solid var(--line);color:#777e89;font-s
                 credential_status=status_entry,
             )
             index = int(status_entry["statusListIndex"])
-            request.app.state.demo_credentials[index] = credential.get("id")
-            # Keep the in-memory registry bounded; demo credentials are synthetic.
-            if len(request.app.state.demo_credentials) > 100:
-                oldest = sorted(request.app.state.demo_credentials)[:-80]
-                for old_index in oldest:
-                    request.app.state.demo_credentials.pop(old_index, None)
+            request.app.state.demo_registry.register(index, credential["id"])
             metrics.operations.labels("demo_issue", "success").inc()
             return credential
         except (ValueError, StatusListError) as exc:
@@ -672,7 +668,7 @@ footer{padding:28px 0 36px;border-top:1px solid var(--line);color:#777e89;font-s
             index = int(status["statusListIndex"]) if isinstance(status, dict) else -1
         except (KeyError, TypeError, ValueError):
             index = -1
-        if index < 0 or request.app.state.demo_credentials.get(index) != payload.credential.get("id"):
+        if index < 0 or not request.app.state.demo_registry.matches(index, payload.credential.get("id")):
             raise HTTPException(status_code=403, detail="Credential was not issued by this demo session")
         try:
             result = verify_credential(
@@ -694,7 +690,7 @@ footer{padding:28px 0 36px;border-top:1px solid var(--line);color:#777e89;font-s
             index = int(status["statusListIndex"]) if isinstance(status, dict) else -1
         except (KeyError, TypeError, ValueError):
             index = -1
-        if index < 0 or request.app.state.demo_credentials.get(index) != payload.credential.get("id"):
+        if index < 0 or not request.app.state.demo_registry.matches(index, payload.credential.get("id")):
             raise HTTPException(status_code=403, detail="Credential was not issued by this demo session")
         try:
             manager.revoke(index)
