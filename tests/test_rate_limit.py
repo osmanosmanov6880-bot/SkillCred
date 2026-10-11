@@ -57,8 +57,6 @@ def test_path_specific_limit_matches_dynamic_client_routes(tmp_path, monkeypatch
 
 
 def test_public_demo_routes_have_narrow_limits(monkeypatch):
-    import os
-
     monkeypatch.delenv("SKILLCRED_RATE_LIMITS_JSON", raising=False)
     from fastapi import FastAPI
     from starlette.requests import Request
