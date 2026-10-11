@@ -131,7 +131,7 @@ def test_public_homepage_returns_russian_product_page_and_pilot_limits(
     assert "text/html" in response.headers["content-type"]
     assert "lang=\"ru\"" in response.text
     assert "Доказательство навыка." in response.text
-    assert "Как это работает" in response.text
+    assert "Узнать, как это работает" in response.text
     assert "Модель бизнеса" in response.text
     assert 'id="checkHealth"' in response.text
     assert 'href="/health"' in response.text
