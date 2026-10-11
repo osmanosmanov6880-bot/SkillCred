@@ -12,6 +12,7 @@ from urllib.parse import urlsplit
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -317,6 +318,21 @@ def create_app(
     application.state.impact_store = impact_store
     application.state.issuer_trust_store = issuer_trust_store
     application.state.demo_credentials = {}
+    # The public landing page is hosted on OSGARD; allow only that origin to call
+    # the deliberately narrow demo routes. No bearer-token headers are exposed.
+    application.add_middleware(
+        CORSMiddleware,
+        allow_origins=[
+            "https://osgard.world",
+            "https://www.osgard.world",
+            "http://localhost:4173",
+            "http://localhost:4188",
+        ],
+        allow_credentials=False,
+        allow_methods=["GET", "POST", "OPTIONS"],
+        allow_headers=["Accept", "Content-Type"],
+        max_age=600,
+    )
     application.add_middleware(
         RateLimitMiddleware, limit=rate_limit, window_seconds=rate_window_seconds
     )
