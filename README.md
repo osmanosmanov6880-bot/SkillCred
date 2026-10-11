@@ -46,6 +46,19 @@ The CLI prompts for the wallet passphrase. For automation, `SKILLCRED_PASSWORD` 
 
 `SKILLCRED_PASSWORD` is provided for automation and demo convenience; production systems should use an operating-system credential manager or hardware-backed key provider.
 
+## Public landing page and browser demo
+
+The root route `/` serves the static product page from `skillcred/static/index.html`. The HTML, CSS and vanilla JavaScript are bundled with the Python package in the Docker image; no external fonts, analytics, or JavaScript CDN are required.
+
+The interactive demo is deliberately constrained to synthetic credentials and uses server-side routes only:
+- `POST /demo/issue` creates a synthetic browser-demo credential.
+- `POST /demo/verify` checks a credential issued by the demo.
+- `POST /demo/revoke` revokes a credential issued by the demo.
+
+To opt in, configure `DEMO_ISSUER_TOKEN` in Render as a random secret of at least 32 ASCII characters. It stays on the server and must never be placed in HTML or JavaScript. The demo endpoints accept only credentials recorded by the in-memory demo registry; they do not expose the production bearer tokens. Public demo use is rate-limited by the existing API middleware. Because the registry is process-local, credentials from a prior restart may no longer be eligible for demo actions; create a new demo credential after a restart.
+
+For the public API schema and interactive documentation, set `SKILLCRED_ENABLE_API_DOCS=true` (enabled in `render.yaml` for the Render Blueprint). This exposes `/docs`, `/redoc`, and `/openapi.json`. These describe the API; they do not certify standards conformance.
+
 ## API
 
 The local API listens on `127.0.0.1:8000` when started with `make run`.
