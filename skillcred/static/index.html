@@ -17,7 +17,7 @@
 </head>
 <body>
 <div class="top"><div class="wrap"><span><span class="pulse"></span>SkillCred · открытый пилот 0.3.0</span><span>Открытый код · Apache-2.0</span></div></div>
-<header><nav class="wrap"><a class="brand" href="https://osgard.world/" aria-label="SkillCred — главная"><span class="mark">S</span><span>SKILLCRED</span></a><div class="links"><a href="https://osgard.world/">OSGARD WORLD</a><a href="#demo">Демо</a><a href="#how">Как работает</a><a href="#audience">Кому полезно</a><a href="#developers">Разработчикам</a></div><a class="btn primary" href="#demo">Попробовать ↗</a></nav></header>
+<header><nav class="wrap"><a class="brand" href="/" aria-label="SkillCred — главная"><span class="mark">S</span><span>SKILLCRED</span></a><div class="links"><a href="https://osgard.world/">OSGARD WORLD</a><a href="#demo">Демо</a><a href="#how">Как работает</a><a href="#audience">Кому полезно</a><a href="#developers">Разработчикам</a></div><a class="btn primary" href="#demo">Попробовать ↗</a></nav></header>
 <main>
 <section class="hero wrap"><div><div class="eyebrow">Переносимые цифровые подтверждения</div><h1>Навыки принадлежат <span>вам.</span><br>Не платформе.</h1><p class="lead">SkillCred помогает учебным организациям выдавать подписанные подтверждения навыков, а людям — хранить их у себя и показывать работодателям без привязки к одному сервису.</p><div class="actions"><a class="btn primary" href="#demo">Попробовать в браузере ↓</a><a class="btn" href="https://github.com/osmanosmanov6880-bot/SkillCred" target="_blank" rel="noopener noreferrer">Исходный код на GitHub ↗</a></div><p class="fine">Без установки · Открытый исходный код · Экспериментальный пилот</p></div>
 <article class="credential" aria-label="Пример цифрового подтверждения навыка"><div class="cred-head"><span>SkillCred / Credential</span><span class="seal" aria-hidden="true">✓</span></div><div class="rule"></div><div class="small">Пример формата удостоверения</div><h2 id="heroBadgeName">Практическая безопасность</h2><p id="heroBadgeDescription">Настоящий подписанный бейдж появится здесь после выпуска в живом демо.</p><div class="rule"></div><div class="cred-meta"><div><div class="small">Эмитент</div><strong id="heroIssuer">Подключаем API…</strong><div class="small" style="margin-top:12px" id="heroDate">Дата появится после выпуска бейджа</div></div><div class="status" id="heroStatus">ОБРАЗЕЦ</div></div></article>
@@ -41,6 +41,7 @@ const API_BASE="https://skillcred-pilot-api.onrender.com";
 const $=function(id){return document.getElementById(id)};
 let credential=null;
 let busy=false;
+let demoReady=false;
 function setResult(message,kind){
  const el=$("demoResult");
  el.className="result"+(kind?" "+kind:"");
@@ -107,12 +108,23 @@ async function loadServiceStatus(){
    const results=await Promise.all([api("/health"),api("/ready"),api("/issuer")]);
    const health=results[0],ready=results[1],issuer=results[2];
    const name=safeName(issuer.name);
+   const signingReady=ready.ready===true&&health.signing_ready===true;
+   demoReady=signingReady&&health.demo_ready===true;
    $("heroIssuer").textContent=name;
    $("liveVersion").textContent="v"+safeName(health.version||"0.3.0");
-   status.textContent=ready.ready&&health.signing_ready?"API онлайн · ключ подписи готов · "+name:"API отвечает, но подпись не готова";
-   status.parentElement.querySelector(".pulse").style.background=ready.ready&&health.signing_ready?"var(--ok)":"var(--bad)";
+   $("issueBtn").disabled=!demoReady;
+   if(demoReady){
+     status.textContent="API онлайн · отдельный издатель демо готов · "+name;
+   }else if(signingReady){
+     status.textContent="API онлайн · издатель готов, но публичное демо отключено в серверной конфигурации";
+   }else{
+     status.textContent="API отвечает, но ключ подписи не готов";
+   }
+   status.parentElement.querySelector(".pulse").style.background=demoReady?"var(--ok)":"var(--bad)";
  }catch(error){
-   status.textContent="API недоступен · демо не может выпускать удостоверения";
+   demoReady=false;
+   $("issueBtn").disabled=true;
+   status.textContent="API недоступен · выпуск, проверка и отзыв требуют работающего сервера";
    status.parentElement.querySelector(".pulse").style.background="var(--bad)";
    $("heroIssuer").textContent="Нет соединения с API";
    $("heroStatus").textContent="API OFFLINE";
