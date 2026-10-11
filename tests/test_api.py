@@ -119,7 +119,7 @@ def test_ephemeral_import_style_app_does_not_publish_a_status_list(tmp_path, mon
     assert client.get("/ready").status_code == 503
     assert client.get("/status-list").status_code == 503
 
-def test_public_homepage_returns_russian_product_page_and_pilot_limits(
+def test_public_homepage_serves_live_api_backed_product_page(
     tmp_path, monkeypatch
 ) -> None:
     monkeypatch.delenv("SKILLCRED_ENABLE_API_DOCS", raising=False)
@@ -129,29 +129,30 @@ def test_public_homepage_returns_russian_product_page_and_pilot_limits(
 
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
-    assert "lang=\"ru\"" in response.text
-    assert "Доказательство навыка." in response.text
-    assert "Узнать, как это работает" in response.text
-    assert "Модель бизнеса" in response.text
-    assert 'id="checkHealth"' in response.text
-    assert 'href="/health"' in response.text
-    assert 'href="/ready"' in response.text
+    assert 'lang="ru"' in response.text
+    assert "Навыки принадлежат" in response.text
+    assert 'id="issueBtn"' in response.text
+    assert 'id="verifyBtn"' in response.text
+    assert 'id="revokeBtn"' in response.text
+    assert 'id="downloadBtn"' in response.text
+    assert 'https://skillcred-pilot-api.onrender.com' in response.text
+    assert "crypto.subtle.generateKey" not in response.text
+    assert "DEMO_ISSUER_TOKEN" not in response.text
     assert "Экспериментальный пилот" in response.text
-    assert "<!-- API_DOCS_LINK -->" not in response.text
-    assert 'href="/docs"' not in response.text
 
 
-def test_public_homepage_links_to_docs_when_enabled(tmp_path, monkeypatch) -> None:
+def test_public_homepage_and_api_docs_are_configured_separately(
+    tmp_path, monkeypatch
+) -> None:
     monkeypatch.setenv("SKILLCRED_ENABLE_API_DOCS", "true")
     client = TestClient(create_app(tmp_path))
 
     response = client.get("/")
 
     assert response.status_code == 200
-    assert 'href="/docs"' in response.text
-    assert "Документация API" in response.text
-    assert "<!-- API_DOCS_LINK -->" not in response.text
-
+    assert 'href="https://skillcred-pilot-api.onrender.com/docs"' in response.text
+    assert client.get("/docs").status_code == 200
+    assert 'id="issueBtn"' in response.text
 
 
 def test_public_demo_round_trip_persists_across_app_restart(tmp_path, monkeypatch) -> None:
