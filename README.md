@@ -46,19 +46,21 @@ The CLI prompts for the wallet passphrase. For automation, `SKILLCRED_PASSWORD` 
 
 `SKILLCRED_PASSWORD` is provided for automation and demo convenience; production systems should use an operating-system credential manager or hardware-backed key provider.
 
-## Public landing page and browser demo
+## Public landing page and live browser demo
 
-The root route `/` serves the static product page from `skillcred/static/index.html`. The HTML, CSS and vanilla JavaScript are bundled with the Python package in the Docker image; no external fonts, analytics, or JavaScript CDN are required.
+The API root route `/` serves `skillcred/static/index.html`. OSGARD publishes the same self-contained page at `https://osgard.world/skillcred/`. The interface uses HTML, CSS and vanilla JavaScript, with no external fonts, analytics, or JavaScript CDN. The controls call the live SkillCred API; they do not sign a simulated credential in the browser.
 
-The interactive demo is deliberately constrained to synthetic credentials and uses server-side routes only:
-- `POST /demo/issue` creates a synthetic browser-demo credential.
-- `POST /demo/verify` checks a credential issued by the demo.
-- `POST /demo/revoke` revokes a credential issued by the demo.
+The public demo issuer is isolated from the production issuer:
+- `POST /demo/issue` issues a synthetic credential signed by a dedicated demo key.
+- `POST /demo/verify` verifies its Ed25519 signature against the demo issuer and checks the demo's signed status list.
+- `POST /demo/revoke` revokes only a credential recorded by the demo registry.
+- `GET /demo/status-list` publishes the demo issuer's signed Bitstring Status List.
 
-To opt in, configure `DEMO_ISSUER_TOKEN` in Render as a random secret of at least 32 ASCII characters. This variable is a server-side enablement gate, not a browser bearer token; never place it in HTML or JavaScript. Demo routes are public by design, but accept only credentials recorded by the in-memory demo registry and cannot use the production role tokens. Public demo use is rate-limited by the existing API middleware. Because the registry is process-local, credentials from a prior restart may no longer be eligible for demo actions; create a new demo credential after a restart.
+The demo signing key is stored in a separate encrypted wallet, using `SKILLCRED_KEY_PASSPHRASE`; it never uses the production issuer's private key. Set `DEMO_ISSUER_TOKEN` to a random server-only value of at least 32 ASCII characters to enable public demo routes. The browser never receives or sends that secret. The routes are intentionally public and limited to synthetic demo badges; per-route rate limits restrict issue and revoke to 5 requests/minute per client and verify to 30 requests/minute. A persistent SQLite registry ties revoke/verify actions to credentials issued through the demo and expires records after seven days.
 
-For the public API schema and interactive documentation, set `SKILLCRED_ENABLE_API_DOCS=true` (enabled in `render.yaml` for the Render Blueprint). This exposes `/docs`, `/redoc`, and `/openapi.json`. These describe the API; they do not certify standards conformance.
+The OSGARD frontend calls the API at `https://skillcred-pilot-api.onrender.com`. The API must be redeployed after backend changes, and its CORS policy permits `https://osgard.world` and `https://www.osgard.world`. The Render Blueprint generates `DEMO_ISSUER_TOKEN` and configures the public docs; sync the Blueprint or set that environment variable on the existing API service if it is not already configured. No separate website service is needed.
 
+For the public API schema and interactive documentation, `SKILLCRED_ENABLE_API_DOCS=true` exposes `/docs`, `/redoc`, and `/openapi.json`. These describe the API and do not certify standards conformance.
 ## API
 
 The local API listens on `127.0.0.1:8000` when started with `make run`.
