@@ -95,7 +95,7 @@ function renderCredential(c){
 }
 function errorText(error){
  const status=error&&error.status;
- if(status===503)return "Сервис API доступен, но выпуск демо не включён на сервере. Настройте DEMO_ISSUER_TOKEN и разверните API.";
+ if(status===503)return "Сервис API доступен, но выпуск демо ещё не включён в серверной конфигурации.";
  if(status===429)return "Слишком много запросов. Подождите немного и попробуйте снова.";
  if(status===403)return "API отклонил действие: этот документ не зарегистрирован как бейдж демо.";
  if(status===422)return "API отклонил данные запроса. Обновите страницу и повторите.";
