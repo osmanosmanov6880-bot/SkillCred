@@ -161,6 +161,7 @@ def test_public_demo_round_trip_persists_across_app_restart(tmp_path, monkeypatc
     monkeypatch.setenv("DEMO_ISSUER_TOKEN", "demo-enablement-secret-" + "d" * 40)
     first = TestClient(create_app(tmp_path))
     assert first.get("/ready").status_code == 200
+    assert first.get("/health").json()["demo_ready"] is True
 
     issued = first.post("/demo/issue")
     assert issued.status_code == 200, issued.text
