@@ -40,6 +40,9 @@ skillcred = "skillcred.cli:app"
 [tool.setuptools.packages.find]
 include = ["skillcred*"]
 
+[tool.setuptools.package-data]
+skillcred = ["static/*.html"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra --strict-markers --strict-config"
