@@ -695,7 +695,7 @@ footer{padding:28px 0 36px;border-top:1px solid var(--line);color:#777e89;font-s
             metrics.operations.labels("revoke", "failure").inc()
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-        @application.get("/demo/status-list")
+    @application.get("/demo/status-list")
     def demo_status_list(request: Request) -> dict[str, Any]:
         demo_manager: StatusListManager | None = request.app.state.demo_status_manager
         if not request.app.state.demo_enabled or demo_manager is None:
