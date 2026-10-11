@@ -17,9 +17,9 @@ def call(path: str, *, method: str = "GET", body: dict | None = None, headers: d
     if body is not None:
         data = json.dumps(body).encode("utf-8")
         request_headers["Content-Type"] = "application/json"
-    request = Request(BASE_URL + path, data=data, headers=request_headers, method=method)
+    request = Request(BASE_URL + path, data=data, headers=request_headers, method=method)  # noqa: S310
     try:
-        with urlopen(request, timeout=20) as response:
+        with urlopen(request, timeout=20) as response:  # noqa: S310
             payload = response.read()
             content_type = response.headers.get("content-type", "")
             parsed = json.loads(payload) if "json" in content_type else payload.decode("utf-8", "replace")
@@ -117,4 +117,4 @@ if __name__ == "__main__":
         raise SystemExit(main())
     except Exception as error:
         print(f"LIVE DEMO FAILED: {error}", file=sys.stderr)
-        raise SystemExit(1)
+        raise SystemExit(1) from error
