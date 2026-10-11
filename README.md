@@ -55,7 +55,7 @@ The interactive demo is deliberately constrained to synthetic credentials and us
 - `POST /demo/verify` checks a credential issued by the demo.
 - `POST /demo/revoke` revokes a credential issued by the demo.
 
-To opt in, configure `DEMO_ISSUER_TOKEN` in Render as a random secret of at least 32 ASCII characters. It stays on the server and must never be placed in HTML or JavaScript. The demo endpoints accept only credentials recorded by the in-memory demo registry; they do not expose the production bearer tokens. Public demo use is rate-limited by the existing API middleware. Because the registry is process-local, credentials from a prior restart may no longer be eligible for demo actions; create a new demo credential after a restart.
+To opt in, configure `DEMO_ISSUER_TOKEN` in Render as a random secret of at least 32 ASCII characters. This variable is a server-side enablement gate, not a browser bearer token; never place it in HTML or JavaScript. Demo routes are public by design, but accept only credentials recorded by the in-memory demo registry and cannot use the production role tokens. Public demo use is rate-limited by the existing API middleware. Because the registry is process-local, credentials from a prior restart may no longer be eligible for demo actions; create a new demo credential after a restart.
 
 For the public API schema and interactive documentation, set `SKILLCRED_ENABLE_API_DOCS=true` (enabled in `render.yaml` for the Render Blueprint). This exposes `/docs`, `/redoc`, and `/openapi.json`. These describe the API; they do not certify standards conformance.
 
