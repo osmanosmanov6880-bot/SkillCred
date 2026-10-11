@@ -2,6 +2,8 @@
 
 **SkillCred** is an open-source, local-first pilot tool for issuing, carrying, exporting and independently verifying digital confirmations of practical skills.
 
+> **Объяснение простыми словами:** [что делает SkillCred, кому он нужен и как проект может зарабатывать](PRODUCT_OVERVIEW.md). Публичный пилотный API: <https://skillcred-pilot-api.onrender.com>.
+
 - License: Apache-2.0.
 - Runtime: Python 3.11+.
 - Issuer keys: Ed25519; local wallet encrypted with Scrypt + AES-256-GCM.
