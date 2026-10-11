@@ -394,7 +394,7 @@ footer{padding:28px 0 36px;border-top:1px solid var(--line);color:#777e89;font-s
 <div class="topline"><div class="wrap"><span><i class="online-dot" aria-hidden="true"></i>Открытая инфраструктура доверия</span><span class="right-note">Пилотная версия 0.3.0 · Apache-2.0</span></div></div>
 <header><div class="wrap nav">
 <a class="brand" href="/" aria-label="SkillCred — на главную"><span class="brand-mark" aria-hidden="true">S</span><span><span class="brand-name">SKILLCRED</span><span class="brand-sub">Proof of practical skill</span></span></a>
-<nav class="navlinks" aria-label="Главная навигация"><a href="#how">Как работает</a><a href="#who">Кому полезно</a><a href="#business">Модель бизнеса</a><a href="#trust">Безопасность</a></nav>
+<nav class="navlinks" aria-label="Главная навигация"><a href="#how">Как работает</a><a href="#who">Кому полезно</a><a href="#business">Модель бизнеса</a><a href="#trust">Безопасность</a><!-- API_DOCS_LINK --></nav>
 <a class="nav-cta" href="https://github.com/osmanosmanov6880-bot/SkillCred" target="_blank" rel="noopener noreferrer">Изучить исходный код ↗</a>
 </div></header>
 <main>
@@ -479,7 +479,7 @@ footer{padding:28px 0 36px;border-top:1px solid var(--line);color:#777e89;font-s
 </section>
 <section class="final-cta"><div class="wrap cta-inner"><div><div class="eyebrow">Следующий шаг</div><h2>Найти один реальный сценарий<br>и доказать его пользу.</h2><p>Ищем учебный центр, работодателя или профессиональное сообщество для небольшого пилота: один навык, один издатель, независимая проверка, измеримые результаты.</p></div><div class="cta-actions"><a class="btn primary" href="mailto:osman.osmanov6880@gmail.com?subject=SkillCred%20%E2%80%94%20%D0%BF%D0%B8%D0%BB%D0%BE%D1%82&body=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D1%81%D1%82%D0%B2%D1%83%D0%B9%D1%82%D0%B5!%20%D0%A5%D0%BE%D1%87%D1%83%20%D0%BE%D0%B1%D1%81%D1%83%D0%B4%D0%B8%D1%82%D1%8C%20%D0%BF%D0%B8%D0%BB%D0%BE%D1%82%20SkillCred.">Обсудить пилот ↗</a><a class="btn secondary" href="https://github.com/osmanosmanov6880-bot/SkillCred" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div></div></section>
 </main>
-<footer><div class="wrap"><div class="footer-inner"><a class="brand" href="/" aria-label="SkillCred — на главную"><span class="brand-mark" aria-hidden="true">S</span><span><span class="brand-name">SKILLCRED</span><span class="brand-sub">Open infrastructure</span></span></a><div class="footer-links"><a href="#how">Как работает</a><a href="#business">Бизнес-модель</a><a href="/health">Состояние API</a><a href="https://github.com/osmanosmanov6880-bot/SkillCred" target="_blank" rel="noopener noreferrer">GitHub</a></div></div><p class="disclaimer">SkillCred 0.3.0 · Apache-2.0 · Экспериментальный пилот. Не является сертифицированной реализацией 1EdTech Open Badges 3.0. Криптографическая подпись не подтверждает сама по себе законность издателя или достаточность оценки навыка. Не отправляйте конфиденциальные персональные данные и не полагайтесь на сервис для решений с существенными последствиями.</p></div></footer>
+<footer><div class="wrap"><div class="footer-inner"><a class="brand" href="/" aria-label="SkillCred — на главную"><span class="brand-mark" aria-hidden="true">S</span><span><span class="brand-name">SKILLCRED</span><span class="brand-sub">Open infrastructure</span></span></a><div class="footer-links"><a href="#how">Как работает</a><a href="#business">Бизнес-модель</a><a href="/health">Состояние API</a><a href="/ready">Готовность API</a><a href="https://github.com/osmanosmanov6880-bot/SkillCred" target="_blank" rel="noopener noreferrer">GitHub</a></div></div><p class="disclaimer">SkillCred 0.3.0 · Apache-2.0 · Экспериментальный пилот. Не является сертифицированной реализацией 1EdTech Open Badges 3.0. Криптографическая подпись не подтверждает сама по себе законность издателя или достаточность оценки навыка. Не отправляйте конфиденциальные персональные данные и не полагайтесь на сервис для решений с существенными последствиями.</p></div></footer>
 <script>
 (function(){
   var button=document.getElementById("checkHealth");
@@ -516,9 +516,11 @@ footer{padding:28px 0 36px;border-top:1px solid var(--line);color:#777e89;font-s
 </html>"""
         if docs_enabled:
             page = page.replace(
-                "Interactive API docs are disabled on this deployment.",
-                '<a class="link" href="/docs">Open interactive API documentation</a>.',
+                "<!-- API_DOCS_LINK -->",
+                '<a href="/docs">Документация API ↗</a>',
             )
+        else:
+            page = page.replace("<!-- API_DOCS_LINK -->", "")
         return HTMLResponse(content=page)
 
     @application.get("/health")
