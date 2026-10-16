@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from fastapi.testclient import TestClient
 from skillcred.api import create_app
 
@@ -139,6 +141,10 @@ def test_public_homepage_serves_live_api_backed_product_page(
     assert "crypto.subtle.generateKey" not in response.text
     assert "DEMO_ISSUER_TOKEN" not in response.text
     assert "Экспериментальный пилот" in response.text
+    assert 'href="https://skillcred-pilot-api.onrender.com/docs"' not in response.text
+    assert 'href="https://skillcred-pilot-api.onrender.com/openapi.json"' not in response.text
+    assert client.get("/docs").status_code == 404
+    assert client.get("/openapi.json").status_code == 404
 
 
 def test_public_homepage_and_api_docs_are_configured_separately(
@@ -151,9 +157,19 @@ def test_public_homepage_and_api_docs_are_configured_separately(
 
     assert response.status_code == 200
     assert 'href="https://skillcred-pilot-api.onrender.com/docs"' in response.text
+    assert 'href="https://skillcred-pilot-api.onrender.com/openapi.json"' in response.text
     assert client.get("/docs").status_code == 200
+    assert client.get("/openapi.json").status_code == 200
     assert 'id="issueBtn"' in response.text
 
+
+
+def test_github_pages_homepage_does_not_advertise_optional_api_docs() -> None:
+    published_homepage = Path(__file__).resolve().parents[1] / "docs" / "index.html"
+    html = published_homepage.read_text(encoding="utf-8")
+    api_base = "https://skillcred-pilot-api.onrender.com"
+    assert f"{api_base}/docs" not in html
+    assert f"{api_base}/openapi.json" not in html
 
 def test_public_demo_round_trip_persists_across_app_restart(tmp_path, monkeypatch) -> None:
     monkeypatch.setenv("SKILLCRED_KEY_PASSPHRASE", "test-encrypted-wallet-passphrase")

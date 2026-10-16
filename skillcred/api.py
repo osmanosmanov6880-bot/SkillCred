@@ -444,7 +444,15 @@ def create_app(
     def homepage() -> HTMLResponse:
         static_homepage = Path(__file__).parent / "static" / "index.html"
         if static_homepage.is_file():
-            return HTMLResponse(content=static_homepage.read_text(encoding="utf-8"))
+            page = static_homepage.read_text(encoding="utf-8")
+            if docs_enabled:
+                page = page.replace(
+                    "<!-- API_DOCS_AND_OPENAPI_LINKS -->",
+                    ' · <a href="https://skillcred-pilot-api.onrender.com/docs" target="_blank" rel="noopener noreferrer">Документация API ↗</a> · <a href="https://skillcred-pilot-api.onrender.com/openapi.json" target="_blank" rel="noopener noreferrer">OpenAPI JSON ↗</a>',
+                )
+            else:
+                page = page.replace("<!-- API_DOCS_AND_OPENAPI_LINKS -->", "")
+            return HTMLResponse(content=page)
         page = """<!doctype html>
 <html lang="ru">
 <head>
