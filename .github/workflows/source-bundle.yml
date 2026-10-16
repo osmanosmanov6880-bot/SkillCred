@@ -1,0 +1,37 @@
+name: Full source ZIP
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-bundle:
+    name: Package complete source
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out exact revision
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build clean source ZIP and source dump
+        run: python scripts/create_release_bundle.py --root . --output-dir dist
+      - name: Create SHA-256 checksums
+        run: |
+          cd dist
+          sha256sum SkillCred-*.zip SkillCred-*-source.md > SHA256SUMS
+      - name: Upload versioned deliverables
+        uses: actions/upload-artifact@v4
+        with:
+          name: SkillCred-complete-source-${{ github.sha }}
+          path: |
+            dist/SkillCred-*.zip
+            dist/SkillCred-*-source.md
+            dist/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 14
