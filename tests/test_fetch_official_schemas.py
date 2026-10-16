@@ -3,7 +3,6 @@ from __future__ import annotations
 from urllib.request import Request
 
 import pytest
-
 from scripts.fetch_official_schemas import (
     _OfficialHTTPSRedirectHandler,
     _validate_official_url,

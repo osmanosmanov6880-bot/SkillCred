@@ -5,7 +5,6 @@ import tomllib
 import zipfile
 
 import pytest
-
 from scripts.create_release_bundle import create_bundle, excluded
 
 
