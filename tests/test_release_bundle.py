@@ -45,7 +45,6 @@ def test_excluded_detects_private_state_names(tmp_path):
     assert excluded(root / "skillcred.egg-info" / "PKG-INFO", root)
 
 
-
 def test_bundle_zip_is_reproducible_across_source_mtime_changes(tmp_path):
     root = tmp_path / "repo"
     root.mkdir()

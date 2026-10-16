@@ -25,9 +25,7 @@ def test_rejects_non_allowlisted_official_asset_urls(url: str) -> None:
 
 
 def test_accepts_allowlisted_official_https_url() -> None:
-    _validate_official_url(
-        "https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json"
-    )
+    _validate_official_url("https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json")
 
 
 def test_rejects_redirect_to_non_allowlisted_host() -> None:
