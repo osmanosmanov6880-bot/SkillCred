@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import os
 import tomllib
 import zipfile
 
+import pytest
 from scripts.create_release_bundle import create_bundle, excluded
 
 
@@ -41,3 +43,38 @@ def test_excluded_detects_private_state_names(tmp_path):
     assert excluded(root / "certificate.pem", root)
     assert excluded(root / "any" / "__pycache__" / "module.pyc", root)
     assert excluded(root / "skillcred.egg-info" / "PKG-INFO", root)
+
+
+def test_bundle_zip_is_reproducible_across_source_mtime_changes(tmp_path):
+    root = tmp_path / "repo"
+    root.mkdir()
+    (root / "pyproject.toml").write_text(
+        '[project]\nname="skillcred"\nversion="0.3.0"\n', encoding="utf-8"
+    )
+    readme = root / "README.md"
+    readme.write_text("# Stable source\n", encoding="utf-8")
+
+    first_zip, first_dump, _ = create_bundle(root, tmp_path / "out-first")
+    os.utime(readme, (1_000_000_000, 1_000_000_000))
+    second_zip, second_dump, _ = create_bundle(root, tmp_path / "out-second")
+
+    assert first_zip.read_bytes() == second_zip.read_bytes()
+    assert first_dump.read_bytes() == second_dump.read_bytes()
+
+
+def test_bundle_skips_symlinks_to_files_outside_checkout(tmp_path):
+    root = tmp_path / "repo"
+    root.mkdir()
+    (root / "pyproject.toml").write_text(
+        '[project]\nname="skillcred"\nversion="0.3.0"\n', encoding="utf-8"
+    )
+    outside = tmp_path / "outside-secret.txt"
+    outside.write_text("must not be packaged", encoding="utf-8")
+    link = root / "external-secret.txt"
+    try:
+        link.symlink_to(outside)
+    except (OSError, NotImplementedError):
+        pytest.skip("This environment does not permit creating symlinks")
+
+    _, _, names = create_bundle(root, tmp_path / "out")
+    assert "external-secret.txt" not in names
