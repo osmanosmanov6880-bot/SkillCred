@@ -13,6 +13,10 @@
 
 > **Pilot status, not certification.** The project uses a focused Open Badges 3.0-shaped credential profile. It is not yet 1EdTech-certified and does not claim full Open Badges 3.0 conformance. Current 1EdTech Open Badges materials show `eddsa-rdfc-2022` in credential examples and also use `eddsa-rdf-2022` in some shared proof-model material; the W3C Data Integrity EdDSA spec defines `eddsa-jcs-2022`, which SkillCred uses for deterministic offline signing. The reviewed 1EdTech material does not establish that this JCS suite is accepted by the current Open Badges certification profile. Do not infer interoperability: verify the exact target profile and official certification suite before claiming conformance. See [SPEC.md](SPEC.md).
 
+## Download and verify the complete source
+
+See [RELEASE_ARTIFACTS.md](RELEASE_ARTIFACTS.md) for how to obtain the latest source ZIP and verify its SHA-256 checksums.
+
 ## What this MVP does
 
 - Generates an Ed25519 issuer key and stores it in a passphrase-encrypted local wallet.
