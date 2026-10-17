@@ -77,3 +77,40 @@ def test_rate_limit_configuration_invalid_fails_during_app_setup(tmp_path, monke
 def test_health_reports_release_version(tmp_path):
     client = TestClient(create_app(tmp_path))
     assert client.get("/health").json()["version"] == "0.3.0"
+
+
+def test_credential_endpoints_reject_missing_authorization(tmp_path, monkeypatch):
+    """Regression: unauthenticated callers cannot issue, verify or revoke."""
+    monkeypatch.setenv("SKILLCRED_API_TOKENS", json.dumps({
+        "issuer": "i" * 48,
+        "verifier": "v" * 48,
+        "revoker": "r" * 48,
+    }))
+    monkeypatch.delenv("SKILLCRED_API_TOKEN", raising=False)
+    client = TestClient(create_app(tmp_path))
+    cases = (
+        ("/issue", {"achievement_name": "Safety", "achievement_description": "Practical test"}),
+        ("/verify", {"credential": {}}),
+        ("/revoke", {"status_list_index": 0}),
+    )
+    for path, body in cases:
+        response = client.post(path, json=body)
+        assert response.status_code in (401, 403), (path, response.status_code)
+
+
+def test_credential_endpoints_enforce_separate_roles(tmp_path, monkeypatch):
+    """Regression: a verifier must never acquire issuer/revoker privileges."""
+    monkeypatch.setenv("SKILLCRED_API_TOKENS", json.dumps({
+        "issuer": "i" * 48,
+        "verifier": "v" * 48,
+        "revoker": "r" * 48,
+    }))
+    monkeypatch.delenv("SKILLCRED_API_TOKEN", raising=False)
+    client = TestClient(create_app(tmp_path))
+    headers = {"Authorization": "Bearer " + "v" * 48}
+    issue = client.post("/issue", headers=headers, json={
+        "achievement_name": "Safety", "achievement_description": "Practical test"
+    })
+    revoke = client.post("/revoke", headers=headers, json={"status_list_index": 0})
+    assert issue.status_code == 403
+    assert revoke.status_code == 403
